@@ -15,5 +15,10 @@
       "destination_sha256": "f07ecb31b149f755db4e34fd1cf0fdacba937d5752e2637b5cdfa3a8f9c6af36"
     }
   ],
-  "source_preserved": true
+  "source_preserved": true,
+  "recovery_archive": {
+    "path": "legacy/source.tar.gz",
+    "sha256": "9e3eb66da2f21d16698d45dac0e711925479fd1181ae0194ce55eb2b3a546f80",
+    "excluded_from_distributions": true
+  }
 }
