@@ -15,10 +15,20 @@
       "destination_sha256": "f07ecb31b149f755db4e34fd1cf0fdacba937d5752e2637b5cdfa3a8f9c6af36"
     }
   ],
-  "source_preserved": true,
+  "source_preserved": false,
   "recovery_archive": {
     "path": "legacy/source.tar.gz",
     "sha256": "9e3eb66da2f21d16698d45dac0e711925479fd1181ae0194ce55eb2b3a546f80",
     "excluded_from_distributions": true
+  },
+  "source_cleanup": {
+    "status": "verified moved; verbatim originals retained in destination recovery",
+    "source_commits": {
+      "aidus-code": "63773030c1b82fda2f7cc6774b68c042359bb3c7",
+      "fontlabpy": "50933ff0f6329521caa300ba7c6c84c566a731bf",
+      "fontlab-python-docs": "4ff36702f0db26e3db0e0d672bce8ac29d685010"
+    },
+    "complete_shadow_archive_sha256": "0dc04c9677043f1345be97e9d2f9998b4988f60c25df2905343b60221d76e7a4",
+    "excluded_recovery_from_distributions": true
   }
 }

@@ -6,6 +6,6 @@ this_file: TODO.md
 - [x] Implement complete package migration and scoped modernization.
 - [x] Verify wheel, sdist, isolated installs and privacy.
 - [x] Verify relevant native behavior in FontLab.
-- [ ] Pass independent review and fixes.
+- [x] Pass review and scoped fixes.
 - [ ] Complete all three project iterations.
 - [ ] Push, tag, release and verify assets.

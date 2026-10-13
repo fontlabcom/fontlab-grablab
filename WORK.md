@@ -30,3 +30,9 @@ remain with the workspace goal; this is not whole-project completion.
 Integration review found grabScreens counted None for a failed native screen save.
 New regression failed with [None]; filtering failed results fixes saved-file
 counts and removes the mutable default screens list. Seven tests now pass.
+
+Whole-project iteration2: current eight-package wheel/sdist audits and joint
+clean installs,16 Twine checks,457 runtime-suite tests and live native control,
+drawing, remote, aliases and Aidus integration pass. Original migration files
+are byte-verified in destination recovery; selected source cleanup is committed.
+Iteration3/tagged builds and actual release verification follow.
