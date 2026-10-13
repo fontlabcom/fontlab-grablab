@@ -1,0 +1,28 @@
+# this_file: pyproject.toml
+[build-system]
+requires = ["hatchling>=1.27", "hatch-vcs>=0.4"]
+build-backend = "hatchling.build"
+[project]
+name = "fontlab-grablab"
+dynamic = ["version"]
+description = "FontLab screenshot and vector export helpers"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
+dependencies = ["fontlab-fontlabapp>=0.1.0"]
+[project.urls]
+Repository = "https://github.com/fontlabcom/fontlab-grablab"
+[project.optional-dependencies]
+test = ["pytest>=8"]
+[tool.hatch.version]
+source = "vcs"
+[tool.hatch.version.raw-options]
+fallback_version = "0.1.0"
+[tool.hatch.build.targets.wheel]
+packages = ["src/grablab"]
+[tool.hatch.build.targets.sdist]
+only-include = ["src", "tests", "examples", "pyproject.toml", "README.md", "LICENSE", "MIGRATION.json", "CHANGELOG.md", "DEPENDENCIES.md", "test.sh"]
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

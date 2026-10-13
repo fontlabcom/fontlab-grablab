@@ -1,0 +1,19 @@
+{
+  "source_repository": "fontlabcom/fontlabpy",
+  "source_revision": "907983777cc5ced9810696134bf9a3bf719208e8",
+  "files": [
+    {
+      "source": "extra/Lib/grablab/__init__.py",
+      "destination": "src/grablab/__init__.py",
+      "sha256": "1ed9a961bfd54e0b553b50c5a3e3cf120d5f9a212039b7e94d9998b7d4ff95cd",
+      "destination_sha256": "a95e21da71330ef6cde99c7130b8ae9da62b4883602b8dcef99d986ecae27f40"
+    },
+    {
+      "source": "extra/Lib/grablab/grab.py",
+      "destination": "src/grablab/grab.py",
+      "sha256": "2c0f8519713082534cff73910562a372d20d05bef8dbc3cb1e4e2a406076a407",
+      "destination_sha256": "948133f644ae2548621f00084aaf0bc1239c4280352be7c002b52d3d4fc6fddb"
+    }
+  ],
+  "source_preserved": true
+}
