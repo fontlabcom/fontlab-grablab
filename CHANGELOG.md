@@ -14,3 +14,12 @@ this_file: CHANGELOG.md
 - Allow reuse of an Application context through an optional constructor argument.
 - Verify source regressions and installed native hidden-widget capture.
 - Exclude failed screen captures from saved-file lists; avoid mutable screen default.
+
+## v0.2.0 publication verified
+
+Actual publication and independent downloaded-asset verification complete.
+Three full-project iterations pass; installed tagged wheel/sdist each457tests.
+Downloaded native smoke covers all eight packages and both formats, including
+production ACP/native UI and TypeRig composition. Exact release URLs, immutable
+code commit and asset digests are in RELEASE.md. This follow-up changes only
+completion evidence; release code and tag are unchanged.

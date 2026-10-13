@@ -18,3 +18,6 @@ Authority: workspace issues/101.md and PLAN.md. Task details: workspace .superpo
 8. Commit, push, tag and release reviewed artifacts; verify remote tag and downloadable assets.
 
 Keep source repositories unchanged until destination verification and recovery evidence are complete. Never treat script submission or mocked tests as proof of native execution. Runtime-dependent operations must fail clearly outside FontLab. Source annotations and this_file headers accompany new code.
+
+Issue101 migration/release acceptance is complete at verified v0.2.0; see
+RELEASE.md. Architecture and future compatibility roadmap remain reference.

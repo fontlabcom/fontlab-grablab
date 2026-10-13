@@ -7,5 +7,5 @@ this_file: TODO.md
 - [x] Verify wheel, sdist, isolated installs and privacy.
 - [x] Verify relevant native behavior in FontLab.
 - [x] Pass review and scoped fixes.
-- [ ] Complete all three project iterations.
-- [ ] Push, tag, release and verify assets.
+- [x] Complete all three project iterations.
+- [x] Push, tag, release and verify assets.
