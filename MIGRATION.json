@@ -12,7 +12,7 @@
       "source": "extra/Lib/grablab/grab.py",
       "destination": "src/grablab/grab.py",
       "sha256": "2c0f8519713082534cff73910562a372d20d05bef8dbc3cb1e4e2a406076a407",
-      "destination_sha256": "948133f644ae2548621f00084aaf0bc1239c4280352be7c002b52d3d4fc6fddb"
+      "destination_sha256": "f07ecb31b149f755db4e34fd1cf0fdacba937d5752e2637b5cdfa3a8f9c6af36"
     }
   ],
   "source_preserved": true

@@ -26,3 +26,7 @@ Final HEAD artifact installs/audits and further integration are pending below.
 Global hotkey capture, desktop screens, open-font canvas and all panel/window
 configurations have not been exercised. Three project iterations and releases
 remain with the workspace goal; this is not whole-project completion.
+
+Integration review found grabScreens counted None for a failed native screen save.
+New regression failed with [None]; filtering failed results fixes saved-file
+counts and removes the mutable default screens list. Seven tests now pass.

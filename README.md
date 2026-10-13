@@ -29,7 +29,8 @@ The preference library still saves GrabLab configuration when explicitly used.
 
 A failed QImage.save returns None even when a stale target exists. Filename
 collisions are handled iteratively, including existing directories. Menu
-capture returns all submenu paths. PNG and SVG preserve title/description
+capture returns all submenu paths. Failed screen saves are omitted from returned
+artifact lists. PNG and SVG preserve title/description
 metadata; SVG optimization adds missing metadata elements when necessary.
 
 ```sh
@@ -40,7 +41,7 @@ uv pip install -e ../fontlab-fontlabapp -e '.[test]'
 uv build
 ```
 
-Six regression tests verify stale-file failure, many collisions, submenu
+Seven regression tests verify stale-file failure, many collisions, submenu
 aggregation, preference restoration, alternative-view failure and SVG metadata.
 Installed native smoke verifies a hidden QWidget PNG/SVG capture, actual
 ApplicationUI, metadata, and restoration after a deliberately failed capture.

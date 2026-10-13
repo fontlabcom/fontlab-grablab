@@ -253,7 +253,7 @@ class Grab(object):
 
         return path
 
-    def grabScreens(self, screens: Any = []) -> Any:
+    def grabScreens(self, screens: Any = None) -> Any:
         paths = []
         for screenid, screen in enumerate(self.app.qapp.screens()):
             if (
@@ -262,11 +262,12 @@ class Grab(object):
             ):
                 continue
             elif (
-                len(screens)
+                screens
                 and screenid not in screens
             ):
                 continue
-            paths.append(self.grabScreenPNG(screen, f"{screenid}"))
+            if path := self.grabScreenPNG(screen, f"{screenid}"):
+                paths.append(path)
         return paths
 
     def grabWidgetPNG(self, widget: Any, abbrtype: Any, name: Any, descriptor: Any="") -> Any:

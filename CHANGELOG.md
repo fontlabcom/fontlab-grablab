@@ -13,3 +13,4 @@ this_file: CHANGELOG.md
   submenu paths; preserve SVG metadata and add missing elements.
 - Allow reuse of an Application context through an optional constructor argument.
 - Verify source regressions and installed native hidden-widget capture.
+- Exclude failed screen captures from saved-file lists; avoid mutable screen default.

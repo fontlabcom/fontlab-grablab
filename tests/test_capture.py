@@ -97,3 +97,10 @@ def test_svg_metadata_is_added_without_existing_elements(grab, tmp_path):
     assert root.find('{http://www.w3.org/2000/svg}desc').text == 'Description'
     group = root.find('{http://www.w3.org/2000/svg}g')
     assert group.attrib == {'font-family': 'system-ui', 'stroke-width': '0.75'}
+
+
+def test_failed_screen_capture_does_not_count_as_a_saved_file(grab,monkeypatch):
+    grab.app.qapp = types.SimpleNamespace(screens=lambda: [object()])
+    grab.pref.grab_screens_only = []
+    monkeypatch.setattr(grab,'grabScreenPNG',lambda screen,number: None)
+    assert grab.grabScreens() == [], 'failed screen capture must not appear in saved paths'
