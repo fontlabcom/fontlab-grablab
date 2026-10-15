@@ -52,3 +52,10 @@ configuration remain later integration checks.
 Both source files and BSD-3-Clause licenses are retained and tracked in
 MIGRATION.json. Versions derive from Git tags through hatch-vcs. Source originals
 remain preserved until migration acceptance. See WORK.md for evidence.
+
+## Status
+
+Issue 101 migration is complete and released as verified v0.2.0 (RELEASE.md): both
+original sources and licences migrated with hashes, wheel/sdist installs, native
+PNG/SVG capture of hidden widgets and FontLab windows, and rendering-preference
+restoration verified in FontLab. All three v0.2.0 project iterations passed.

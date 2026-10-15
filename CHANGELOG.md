@@ -4,6 +4,16 @@ this_file: CHANGELOG.md
 
 # Changelog
 
+## 2026-10-15 — completed checklist (moved from TODO.md)
+
+- Record source provenance and baseline.
+- Implement complete package migration and scoped modernization.
+- Verify wheel, sdist, isolated installs and privacy.
+- Verify relevant native behavior in FontLab.
+- Pass review and scoped fixes.
+- Complete all three project iterations.
+- Push, tag, release and verify assets.
+
 ## Unreleased
 
 - Preserve all source functionality and license notices with migration hashes.
