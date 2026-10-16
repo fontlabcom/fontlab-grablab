@@ -14,7 +14,10 @@ this_file: CHANGELOG.md
 - Complete all three project iterations.
 - Push, tag, release and verify assets.
 
-## Unreleased
+## v0.2.1 (2026-10-16)
+
+Documentation and ignore-rule reconciliation since v0.2.0 (issue 101/104/106); no runtime changes. Release review: verification/issue-106/reviews/X5-fontlab-grablab.md.
+
 
 - Preserve all source functionality and license notices with migration hashes.
 - Add hatch-vcs wheel/sdist packaging, lazy imports and source annotations.
