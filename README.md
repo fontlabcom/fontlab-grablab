@@ -34,12 +34,14 @@ artifact lists. PNG and SVG preserve title/description
 metadata; SVG optimization adds missing metadata elements when necessary.
 
 ```sh
-# During initial migration, install the sibling dependency locally:
-uv venv --python 3.12
+# Install the sibling dependency locally (arm64 Python 3.11, as in FontLab):
+uv venv --python cpython-3.11-macos-aarch64-none
 uv pip install -e ../fontlab-fontlabapp -e '.[test]'
 ./test.sh
 uv build
 ```
+
+`./test.sh` runs with `--no-sync`, so create this environment first.
 
 Seven regression tests verify stale-file failure, many collisions, submenu
 aggregation, preference restoration, alternative-view failure and SVG metadata.
