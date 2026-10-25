@@ -93,7 +93,6 @@ def build_raster_index(
             }
             if row not in index["pixels"].setdefault(key, []):
                 index["pixels"][key].append(row)
-    exported_keys = set(index["pixels"])
     sources = []
     for folder in source_dirs:
         if not Path(folder).is_dir():
@@ -101,14 +100,11 @@ def build_raster_index(
         for raster in sorted(Path(folder).rglob("*.png")):
             key = pixel_key(raster.read_bytes())
             sources.append((raster, key))
-            if key not in exported_keys:
-                name = re.sub(r"@2x$", "", raster.stem)
-                for candidate in names.get(name, []):
-                    row = dict(
-                        candidate, png=str(raster.resolve()), match="source-name"
-                    )
-                    if row not in index["pixels"].setdefault(key, []):
-                        index["pixels"][key].append(row)
+            name = re.sub(r"@2x$", "", raster.stem)
+            for candidate in names.get(name, []):
+                row = dict(candidate, png=str(raster.resolve()), match="source-name")
+                if row not in index["pixels"].setdefault(key, []):
+                    index["pixels"][key].append(row)
     for raster, key in sources:
         candidates = index["pixels"].get(key, [])
         index["sources"].append(
@@ -304,11 +300,16 @@ def tag_widgets(root: ET.Element, record: dict) -> dict:
         record["extensions"]["widgets"],
         key=lambda node: node["rect"][2] * node["rect"][3],
     )
+    by_id = {widget["id"]: widget for widget in widgets}
+    if len(by_id) != len(widgets):
+        raise ValueError("Widget records must have unique IDs")
     stats = {
         "tagged": 0,
         "text_anchors": 0,
         "unmatched": 0,
         "unsupported": 0,
+        "ambiguous": 0,
+        "ambiguities": [],
         "limits": [
             "Bounds containment is not paint ownership; clipping and text metrics are not resolved"
         ],
@@ -341,7 +342,27 @@ def tag_widgets(root: ET.Element, record: dict) -> dict:
         if not matches:
             stats["unmatched"] += 1
             continue
-        ident = matches[0]["id"]
+        area = matches[0]["rect"][2] * matches[0]["rect"][3]
+        tied = [
+            widget
+            for widget in matches
+            if widget["rect"][2] * widget["rect"][3] == area
+        ]
+        winners = [
+            widget
+            for widget in tied
+            if all(_descends_from(widget["id"], other["id"], by_id) for other in tied)
+        ]
+        if len(winners) != 1:
+            stats["ambiguous"] += 1
+            stats["ambiguities"].append(
+                {
+                    "element": source.get("id", shape.id),
+                    "widgets": sorted(widget["id"] for widget in tied),
+                }
+            )
+            continue
+        ident = winners[0]["id"]
         source.set("data-widget", ident)
         if isinstance(shape, Text):
             source.set("data-widget-method", "text-anchor")
@@ -355,6 +376,101 @@ def tag_widgets(root: ET.Element, record: dict) -> dict:
             used.add(name)
         stats["tagged"] += 1
     return stats
+
+
+def _descends_from(ident: str, ancestor: str, widgets: dict) -> bool:
+    """Require an observed parent chain; missing links/cycles prove nothing."""
+    seen = set()
+    found = False
+    while ident in widgets:
+        if ident in seen:
+            return False
+        found = found or ident == ancestor
+        seen.add(ident)
+        ident = widgets[ident].get("parent")
+    return found
+
+
+def _effective_paints(root: ET.Element) -> dict:
+    """Resolve author paint cascade before edits, including inherited no-paint."""
+    import cssselect2
+    import tinycss2
+
+    def declarations(content: str | list) -> list:
+        result = tinycss2.parse_blocks_contents(
+            content, skip_comments=True, skip_whitespace=True
+        )
+        if any(part.type != "declaration" for part in result):
+            raise ValueError("Unsupported or malformed CSS declarations")
+        return [part for part in result if part.lower_name in ("fill", "stroke")]
+
+    matcher = cssselect2.Matcher()
+    for style in root.iter(f"{{{SVG}}}style"):
+        for rule in tinycss2.parse_stylesheet(
+            style.text or "", skip_comments=True, skip_whitespace=True
+        ):
+            if rule.type != "qualified-rule":
+                raise ValueError("Unsupported or malformed SVG stylesheet rule")
+            payload = declarations(rule.content)
+            for selector in cssselect2.compile_selector_list(
+                rule.prelude, namespaces={None: SVG}
+            ):
+                matcher.add_selector(selector, payload)
+    computed = {}
+    for wrapper in cssselect2.ElementWrapper.from_xml_root(root).iter_subtree():
+        node = wrapper.etree_element
+        inherited = (
+            computed[wrapper.parent.etree_element]
+            if wrapper.parent is not None
+            else {"fill": "black", "stroke": "none"}
+        )
+        cascade = {
+            key: ((False, (0, 0, 0, 0), -1), node.get(key, "inherit"))
+            for key in ("fill", "stroke")
+        }
+        rules = [
+            (specificity, order, payload)
+            for specificity, order, pseudo, payload in matcher.match(wrapper)
+            if pseudo is None
+        ]
+        rules = [
+            ((0,) + specificity, order, payload)
+            for specificity, order, payload in rules
+        ]
+        rules.append(((1, 0, 0, 0), 0, declarations(node.get("style", ""))))
+        for specificity, order, payload in rules:
+            for declaration in payload:
+                key = declaration.lower_name
+                weight = (declaration.important, specificity, order)
+                if weight >= cascade[key][0]:
+                    cascade[key] = (
+                        weight,
+                        tinycss2.serialize(declaration.value).strip(),
+                    )
+        effective = {}
+        for key, (_, value) in cascade.items():
+            value = tinycss2.serialize(
+                [
+                    token
+                    for token in tinycss2.parse_component_value_list(value)
+                    if token.type != "comment"
+                ]
+            ).strip()
+            keyword = value.lower()
+            if keyword in ("inherit", "unset"):
+                value = inherited[key]
+            elif keyword == "initial":
+                value = "black" if key == "fill" else "none"
+            elif (
+                keyword in ("revert", "revert-layer", "context-fill", "context-stroke")
+                or "var(" in keyword
+            ):
+                raise ValueError("Contextual CSS paint cannot be resolved safely")
+            elif keyword == "none":
+                value = "none"
+            effective[key] = value
+        computed[node] = effective
+    return computed
 
 
 def deduplicate_paths(root: ET.Element) -> dict:
@@ -446,8 +562,9 @@ def restyle(
 ) -> dict:
     """Restyle presentation/inline CSS; retain opacity and none paints.
 
-    Class stylesheet rules are intentionally retained; inline style wins for the
-    changed properties. Wireframe uses no fills, monochrome outlines and text.
+    Resolve author CSS cascade/inheritance first to preserve effective no-paint.
+    Unsupported/contextual CSS fails before edits. Wireframe explicitly changes
+    paints to monochrome outlines and text; stylesheet rules remain in place.
     """
     if stroke_width is not None and (
         not math.isfinite(stroke_width) or stroke_width < 0
@@ -456,6 +573,7 @@ def restyle(
     if wireframe:
         stroke, fill = stroke or "#333333", "none"
         stroke_width = 1 if stroke_width is None else stroke_width
+    paints = _effective_paints(root)
     stats = {"styled": 0}
     for node in root.iter():
         kind = node.tag.rsplit("}", 1)[-1]
@@ -488,7 +606,7 @@ def restyle(
             if value is not None and (
                 key == "stroke-width"
                 or (wireframe and key == "stroke")
-                or css.get(key, node.get(key)) != "none"
+                or paints[node].get(key) != "none"
             ):
                 updates[key] = str(value)
         if wireframe and kind in ("text", "tspan"):

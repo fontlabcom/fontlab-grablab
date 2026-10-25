@@ -6,6 +6,10 @@ this_file: CHANGELOG.md
 
 ## 2026-10-25 — issue 131 host-free SVG pipeline
 
+- Review fix round1: retain contradictory authoritative-name candidates beside
+  exported-pixel matches; fail closed on unresolved equal-area widget ties; use
+  maintained CSS cascade parsing to preserve effective no-paint during restyling.
+
 - Add explicit SVG postprocessing: provenance-aware raster/vector mapping,
   namespaced inlining, coordinate widget tags on original paint elements,
   conservative opt-in duplicate cleanup, logical composition and restyling.

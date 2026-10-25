@@ -342,3 +342,130 @@ def test_semantics_never_tag_shared_defs_as_a_use_instance():
         },
     )
     assert root[0][0].get("data-widget") is None
+
+
+def test_source_name_conflicts_with_existing_export_pixels_remain_ambiguous(tmp_path):
+    assets(tmp_path, True)
+    (tmp_path / "two.png").write_bytes(png((1, 2, 3, 255)))
+    sources = tmp_path / "sources"
+    sources.mkdir()
+    old_two = png((8, 9, 10, 255))
+    (sources / "two.png").write_bytes(old_two)
+    index = svg.build_raster_index(tmp_path / "manifest.json", [sources])
+    root = tree(f'<image href="{uri(old_two)}"/>')
+    mapping = svg.map_images(root, index)
+    assert mapping[uri(old_two)]["status"] == "ambiguous"
+    assert {
+        (row["asset"], row["match"]) for row in mapping[uri(old_two)]["candidates"]
+    } == {("one", "pixel-exact"), ("two", "source-name")}
+    assert svg.inline_images(root, mapping)["replaced"] == 0
+
+
+@pytest.mark.parametrize("reverse", [False, True])
+def test_equal_widget_siblings_are_ambiguous_independent_of_input_order(reverse):
+    widgets = [
+        {"id": "left", "parent": "root", "rect": [0, 0, 20, 20]},
+        {"id": "right", "parent": "root", "rect": [0, 0, 20, 20]},
+    ]
+    root = tree('<path d="M0 0h10v10z"/>')
+    stats = svg.tag_widgets(
+        root,
+        {
+            "size": [100, 100],
+            "extensions": {"widgets": widgets[::-1] if reverse else widgets},
+        },
+    )
+    assert root[0].get("data-widget") is None
+    assert stats["ambiguous"] == 1 and stats["tagged"] == 0
+    assert stats["ambiguities"][0]["widgets"] == ["left", "right"]
+
+
+@pytest.mark.parametrize("reverse", [False, True])
+def test_equal_parent_child_widget_bounds_choose_proven_descendant(reverse):
+    widgets = [
+        {"id": "outer", "parent": None, "rect": [0, 0, 20, 20]},
+        {"id": "inner", "parent": "outer", "rect": [0, 0, 20, 20]},
+    ]
+    root = tree('<path d="M0 0h10v10z"/>')
+    stats = svg.tag_widgets(
+        root,
+        {
+            "size": [100, 100],
+            "extensions": {"widgets": widgets[::-1] if reverse else widgets},
+        },
+    )
+    assert root[0].get("data-widget") == "inner"
+    assert stats["tagged"] == 1 and stats["ambiguous"] == 0
+
+
+def test_normal_restyle_preserves_class_none_under_css_precedence():
+    root = tree(
+        '<style>#idpaint {fill:blue}.outline {fill:none;stroke:none}.paint {fill:green}.outline {fill:none}</style><path class="outline" d="M0 0h10v10z"/><path class="outline" id="idpaint"/><path class="outline" style="fill:red"/><path class="outline" fill="red"/><g class="outline"><path/></g>'
+    )
+    svg.restyle(root, fill="yellow", stroke="black")
+    assert root[1].get("fill") != "yellow" and root[1].get("stroke") != "black"
+    assert root[2].get("fill") == "yellow"  # ID overrides later class
+    assert root[3].get("fill") == "yellow"  # inline overrides class
+    assert root[4].get("fill") == "red"  # presentation is weaker than class none
+    assert root[5][0].get("fill") != "yellow"  # inherited none
+
+
+def test_normal_restyle_honors_important_none_over_inline_color():
+    root = tree(
+        '<style>.outline {fill:none !important;stroke:none !important}</style><path class="outline" style="fill:red;stroke:blue"/>'
+    )
+    svg.restyle(root, fill="yellow", stroke="black")
+    assert root[1].get("fill") != "yellow" and root[1].get("stroke") != "black"
+
+
+def test_same_vector_source_name_and_pixel_evidence_stay_uniquely_matched(tmp_path):
+    assets(tmp_path)
+    sources = tmp_path / "sources"
+    sources.mkdir()
+    raster = png((8, 9, 10, 255))
+    (sources / "one.png").write_bytes(raster)
+    index = svg.build_raster_index(tmp_path / "manifest.json", [sources])
+    row = svg.map_images(tree(f'<image href="{uri(raster)}"/>'), index)[uri(raster)]
+    assert row["status"] == "matched"
+    assert {candidate["match"] for candidate in row["candidates"]} == {
+        "source-name",
+        "pixel-exact",
+    }
+
+
+@pytest.mark.parametrize("leaf", [False, True])
+def test_widget_hierarchy_cycles_do_not_prove_unique_ownership(leaf):
+    widgets = [
+        {"id": "a", "parent": "b", "rect": [0, 0, 20, 20]},
+        {"id": "b", "parent": "a", "rect": [0, 0, 20, 20]},
+    ]
+    if leaf:
+        widgets.append({"id": "leaf", "parent": "a", "rect": [0, 0, 20, 20]})
+    root = tree('<path d="M0 0h10v10z"/>')
+    stats = svg.tag_widgets(
+        root, {"size": [100, 100], "extensions": {"widgets": widgets}}
+    )
+    assert stats["ambiguous"] == 1 and root[0].get("data-widget") is None
+
+
+def test_stylesheet_source_order_inline_precedence_and_keyword_inheritance():
+    root = tree(
+        '<style>.same {fill:green}.same {fill:NONE /*comment*/}#special {fill:green}.same {fill:none}</style><path class="same"/><path class="same" id="special"/><path class="same" style="fill:red !important;fill:none"/><g fill="none"><path fill="inherit"/></g>'
+    )
+    svg.restyle(root, fill="yellow")
+    assert root[1].get("fill") != "yellow"
+    assert root[2].get("fill") == "yellow"
+    assert root[3].get("fill") == "yellow"
+    assert root[4][0].get("fill") != "yellow"
+
+
+@pytest.mark.parametrize(
+    "style",
+    ["@media print {.a {fill:none}}", ".a {fill:var(--paint)}", ".a {fill:revert}"],
+)
+def test_unresolved_css_fails_before_mutating_paint(style):
+    root = tree(f'<style>{style}</style><path class="a"/>')
+    original = ET.tostring(root)
+    with pytest.raises(ValueError):
+        svg.restyle(root, fill="yellow")
+    assert ET.tostring(root) == original

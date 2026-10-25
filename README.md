@@ -144,6 +144,8 @@ Nested SVGs retain image viewport/aspect ratio, ancestor transforms and clipping
 local IDs, fragment/url references and CSS classes are namespaced. `tag_widgets`
 tags original elements in place using transformed bounds and the smallest
 containing `extensions.widgets[].rect`, preserving paint order and existing IDs.
+Equal-area ties require one proven descendant through the recorded parent chain;
+otherwise elements stay untagged, with sorted candidate IDs in ambiguity stats.
 New IDs derive from widget IDs; `data-widget` records the exact widget identity.
 Text uses its transformed anchor, disclosed by `data-widget-method="text-anchor"`,
 rather than invented font metrics. Bounds containment is approximate ownership:
@@ -154,6 +156,10 @@ Unsupported/unmatched counts and limits remain in returned stats.
 positions, input paint order, source viewBox sizes and collision-free local IDs.
 `restyle` changes stroke/fill/width/background/font (`system-ui` by default),
 including inline CSS. Wireframe keeps readable monochrome text and outlines.
+Ordinary color changes preserve effective `none` from presentation attributes,
+class/ID CSS and inline styles using specificity, source order, inheritance and
+`!important`. Conditional stylesheet rules and unresolved contextual paints fail
+before mutation. cssselect2/tinycss2 provide the selector and declaration parsing.
 External resources, global CSS selectors and `!important` rules need separate
 review; helpers target trusted Qt captures and the known Illustrator assets.
 

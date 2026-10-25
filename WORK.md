@@ -6,6 +6,42 @@ this_file: WORK.md
 
 ## Issue 131 Task 3 — 2026-10-25 host-free SVG candidate
 
+### Review fix round1
+
+Read `verification/issue-131/task-3-review.md` verbatim. Added regressions first:
+seven failing cases reproduced the three review findings. Source-name evidence
+now always joins pixel-exact evidence; distinct vectors remain ambiguous, same
+vector stays uniquely matched with both provenance records retained. Equal-area
+semantic ties require a unique observed descendant; siblings/cycles remain
+untagged and disclose sorted candidate IDs, independent of record order.
+
+Restyling resolves paint cascade before editing using cssselect2/tinycss2, whose
+official API docs and installed Matcher.match source were inspected. This covers
+class/ID specificity, source order, inline/presentation precedence, !important,
+inheritance, comments and keyword case. Unsupported conditional/contextual CSS
+fails before any mutation. No native path imports these lazy dependencies.
+
+Exact commands, exit0 (the initial tests-first run was exit1 as expected):
+
+```
+rtk proxy uv pip install --python /Volumes/Falstaff4T/fontlab-scripting-data/issue131/svg-env/bin/python cssselect2
+rtk proxy env PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 /Volumes/Falstaff4T/fontlab-scripting-data/issue131/svg-env/bin/python -m pytest -q tests/test_svg.py
+rtk proxy env COVERAGE_FILE=/Volumes/Falstaff4T/fontlab-scripting-data/issue131/svg-fix1.coverage PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 /Volumes/Falstaff4T/fontlab-scripting-data/issue131/svg-env/bin/python -m pytest -p pytest_cov --cov=grablab.svg --cov-branch --cov-report=term-missing --cov-report=json:/Volumes/Falstaff4T/fontlab-scripting-data/issue131/svg-coverage-fix1.json -q
+rtk proxy uvx ruff check src/grablab/svg.py tests/test_svg.py
+```
+
+Full suite57passes (36SVG controls); module325/334statements and145/158branches,
+zero exclusions. Actual531asset/3658source-PNG audit rerun:1044matched,
+51ambiguous,2563unmatched. One actual old source contradiction is now retained;
+previous1045/50counts are superseded. Matched provenance sets:991source-name,
+40both same-vector pixel/name,13pixel-exact only. New receipts `../svg-raster-index-fix1.json`,
+`../svg-index-summary-fix1.json`, `../svg-coverage-fix1.json`, `../svg-fix1.coverage`
+preserve prior receipts unchanged. Root owns actual captures/rendered acceptance.
+
+Wait, but: no-paint cascade correctness does not prove browser rendering or
+arbitrary stylesheet rewriting. Conditional CSS fails closed; raw inputs, native
+hosts, canonical installations and icon tools remain untouched.
+
 Scope: new `grablab.svg`, its tests, optional dependencies and these docs only;
 capture/snapshot files and canonical/live installations remain untouched. Based
 on reviewed c685e24. Read the full issue/brief, global plan and local guidance.

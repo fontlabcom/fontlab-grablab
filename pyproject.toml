@@ -14,8 +14,8 @@ dependencies = ["fontlab-fontlabapp>=0.1.0"]
 [project.urls]
 Repository = "https://github.com/fontlabcom/fontlab-grablab"
 [project.optional-dependencies]
-test = ["pytest>=8", "Pillow>=10", "svgelements>=1.9.6"]
-svg = ["Pillow>=10", "svgelements>=1.9.6"]
+test = ["pytest>=8", "Pillow>=10", "svgelements>=1.9.6", "cssselect2>=0.8", "tinycss2>=1.4"]
+svg = ["Pillow>=10", "svgelements>=1.9.6", "cssselect2>=0.8", "tinycss2>=1.4"]
 [tool.hatch.version]
 source = "vcs"
 [tool.hatch.version.raw-options]
