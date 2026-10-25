@@ -1,0 +1,515 @@
+# this_file: src/grablab/svg.py
+"""Explicit, host-free SVG postprocessing. Install the ``svg`` extra.
+
+Trees are edited in memory; write_svg exclusively creates a NEW output. Raw
+captures are never rewritten. Data URIs must match known decoded PNG pixels;
+named source aliases explicitly distinguish vector provenance from equivalence.
+Semantic bounds indicate containment, not pixel ownership.
+"""
+
+from __future__ import annotations
+
+import base64
+import binascii
+import copy
+import hashlib
+import io
+import json
+import math
+import re
+import xml.etree.ElementTree as ET
+from pathlib import Path
+
+SVG = "http://www.w3.org/2000/svg"
+XLINK = "{http://www.w3.org/1999/xlink}href"
+ET.register_namespace("", SVG)
+ET.register_namespace("xlink", "http://www.w3.org/1999/xlink")
+
+
+def read_svg(path: str | Path) -> ET.Element:
+    """Read trusted local capture/export XML without touching the source."""
+    root = ET.parse(path).getroot()
+    if root.tag != f"{{{SVG}}}svg":
+        raise ValueError("Expected a namespaced SVG document")
+    return root
+
+
+def write_svg(root: ET.Element, output: str | Path) -> Path:
+    """Publish a new processed artifact; refuse raw/existing destinations."""
+    output = Path(output)
+    data = ET.tostring(root, encoding="utf-8", xml_declaration=True)
+    with output.open("xb") as stream:
+        stream.write(data)
+    return output
+
+
+def pixel_key(data: bytes) -> str:
+    """Hash dimensions and unpremultiplied RGBA, ignoring only invisible RGB."""
+    from PIL import Image
+
+    with Image.open(io.BytesIO(data)) as image:
+        if image.format != "PNG":
+            raise ValueError("Expected PNG")
+        rgba = image.convert("RGBA")
+        pixels = bytearray(rgba.tobytes())
+        for i in range(0, len(pixels), 4):
+            if pixels[i + 3] == 0:
+                pixels[i : i + 3] = b"\0\0\0"
+        return hashlib.sha256(
+            f"{rgba.width}x{rgba.height}:".encode() + pixels
+        ).hexdigest()
+
+
+def build_raster_index(
+    manifest: str | Path, source_dirs: list[str | Path] = ()
+) -> dict:
+    """Index exported PNG variants and exact-pixel authoritative source aliases.
+
+    Authoritative source PNGs may associate by unique original asset_name (only
+    @2x suffix is normalized). The mapping records source-name provenance, which
+    is not a pixel-equivalence claim for the exported vector. Errors fail loudly.
+    """
+    manifest = Path(manifest).resolve()
+    index: dict = {"schema": "grablab.raster-index/1", "pixels": {}, "sources": []}
+    names: dict = {}
+    for asset in json.loads(manifest.read_text())["assets"]:
+        files = asset["files"]
+        vector = (manifest.parent / files["svg"]["path"]).resolve()
+        if not vector.is_file():
+            raise FileNotFoundError(vector)
+        names.setdefault(asset.get("asset_name", asset["basename"]), []).append(
+            {"asset": asset["basename"], "svg": str(vector)}
+        )
+        for kind, entry in files.items():
+            if not kind.startswith("png"):
+                continue
+            raster = (manifest.parent / entry["path"]).resolve()
+            key = pixel_key(raster.read_bytes())
+            row = {
+                "asset": asset["basename"],
+                "png": str(raster),
+                "svg": str(vector),
+                "match": "pixel-exact",
+            }
+            if row not in index["pixels"].setdefault(key, []):
+                index["pixels"][key].append(row)
+    exported_keys = set(index["pixels"])
+    sources = []
+    for folder in source_dirs:
+        if not Path(folder).is_dir():
+            raise NotADirectoryError(folder)
+        for raster in sorted(Path(folder).rglob("*.png")):
+            key = pixel_key(raster.read_bytes())
+            sources.append((raster, key))
+            if key not in exported_keys:
+                name = re.sub(r"@2x$", "", raster.stem)
+                for candidate in names.get(name, []):
+                    row = dict(
+                        candidate, png=str(raster.resolve()), match="source-name"
+                    )
+                    if row not in index["pixels"].setdefault(key, []):
+                        index["pixels"][key].append(row)
+    for raster, key in sources:
+        candidates = index["pixels"].get(key, [])
+        index["sources"].append(
+            {
+                "png": str(raster.resolve()),
+                "pixel_key": key,
+                "status": _status(candidates),
+                "candidates": candidates,
+            }
+        )
+    return index
+
+
+def _status(candidates: list[dict]) -> str:
+    count = len({row["svg"] for row in candidates})
+    return "matched" if count == 1 else "ambiguous" if count else "unmatched"
+
+
+def map_images(root: ET.Element, index: dict) -> dict:
+    """Return a JSON-serializable data-URI mapping with all candidate paths."""
+    mapping = {}
+    for node in root.iter(f"{{{SVG}}}image"):
+        href = node.get("href", node.get(XLINK, ""))
+        if not href.startswith("data:") or href in mapping:
+            continue
+        row = {"status": "unsupported", "candidates": []}
+        if href.startswith("data:image/png;base64,"):
+            try:
+                key = pixel_key(base64.b64decode(href.split(",", 1)[1], validate=True))
+                candidates = index["pixels"].get(key, [])
+                row = {
+                    "status": _status(candidates),
+                    "pixel_key": key,
+                    "candidates": candidates,
+                }
+            except (ValueError, OSError, binascii.Error) as exc:
+                row = {"status": "invalid", "candidates": [], "error": str(exc)}
+        mapping[href] = row
+    return mapping
+
+
+def _namespace(root: ET.Element, prefix: str) -> None:
+    """Namespace local IDs, fragment/url references and Illustrator CSS classes."""
+    existing = [node.get("id") for node in root.iter() if node.get("id")]
+    if len(existing) != len(set(existing)):
+        raise ValueError("Cannot namespace duplicate source IDs")
+    ids = {
+        node.get("id"): prefix + node.get("id")
+        for node in root.iter()
+        if node.get("id")
+    }
+    classes = {
+        name: prefix + name
+        for node in root.iter()
+        for name in node.get("class", "").split()
+    }
+
+    def refs(value: str) -> str:
+        for old, new in ids.items():
+            value = re.sub(
+                r"url\(\s*(['\"]?)#" + re.escape(old) + r"\1\s*\)",
+                f"url(#{new})",
+                value,
+            )
+        return value
+
+    for node in root.iter():
+        for key, value in list(node.attrib.items()):
+            if key == "id":
+                value = ids[value]
+            elif key in ("href", XLINK) and value.startswith("#"):
+                value = "#" + ids.get(value[1:], value[1:])
+            elif key == "class":
+                value = " ".join(classes[name] for name in value.split())
+            node.set(key, refs(value))
+        if node.tag == f"{{{SVG}}}style" and node.text:
+            text = refs(node.text)
+
+            # Rewrite selectors only: a color literal in declarations is not an ID.
+            def selectors(match: re.Match) -> str:
+                value = match[1]
+                for marker, names in (("#", ids), (".", classes)):
+                    for old, new in names.items():
+                        value = re.sub(
+                            re.escape(marker + old) + r"(?![\w-])", marker + new, value
+                        )
+                return value + "{"
+
+            node.text = re.sub(r"([^{}]+)\{", selectors, text)
+
+
+def _prefix(root: ET.Element, stem: str) -> str:
+    existing = {node.get("id", "") for node in root.iter()}
+    n = 0
+    while any(value.startswith(f"{stem}-{n}-") for value in existing):
+        n += 1
+    return f"{stem}-{n}-"
+
+
+def inline_images(root: ET.Element, mapping: dict) -> dict:
+    """Replace uniquely matched rasters in place with nested SVG viewports.
+
+    The outer group retains image transforms/clipping/opacity; the nested SVG
+    retains exported viewBox, drawing/defs and image placement/aspect ratio.
+    """
+    stats = {"replaced": 0, "retained": 0}
+    for parent in list(root.iter()):
+        for position, node in enumerate(list(parent)):
+            if node.tag != f"{{{SVG}}}image":
+                continue
+            row = mapping.get(node.get("href", node.get(XLINK, "")), {})
+            if (
+                row.get("status") != "matched"
+                or _status(row.get("candidates", [])) != "matched"
+            ):
+                stats["retained"] += 1
+                continue
+            vector = read_svg(row["candidates"][0]["svg"])
+            prefix = _prefix(root, "icon")
+            _namespace(vector, prefix)
+            if not vector.get("id"):
+                vector.set("id", prefix + "viewport")
+            viewport = {
+                key: node.get(key, default)
+                for key, default in (
+                    ("x", "0"),
+                    ("y", "0"),
+                    ("width", "100%"),
+                    ("height", "100%"),
+                    ("preserveAspectRatio", "xMidYMid meet"),
+                )
+            }
+            vector.attrib.update(viewport)
+            vector.set("overflow", "hidden")
+            group = ET.Element(
+                f"{{{SVG}}}g",
+                {
+                    key: val
+                    for key, val in node.attrib.items()
+                    if key not in {*viewport, "href", XLINK}
+                },
+            )
+            group.append(vector)
+            group.tail = node.tail
+            parent.remove(node)
+            parent.insert(position, group)
+            stats["replaced"] += 1
+    return stats
+
+
+def tag_widgets(root: ET.Element, record: dict) -> dict:
+    """Tag original paint shapes by smallest containing root-logical widget rect.
+
+    svgelements computes actual path/shape bounds with inherited transforms and
+    viewports. Text metrics, clipping and use-instance ownership are not inferred.
+    Existing IDs remain intact to preserve references; data-widget is always set.
+    """
+    from svgelements import SVG as GeometrySVG
+    from svgelements import Image as GeometryImage
+    from svgelements import Point, Shape, Text
+
+    nodes = list(root.iter())
+    nonpaint = {
+        id(child)
+        for node in nodes
+        if node.tag.rsplit("}", 1)[-1]
+        in ("defs", "clipPath", "mask", "pattern", "symbol", "marker")
+        for child in node.iter()
+    }
+    probe = copy.deepcopy(root)
+    originals = {}
+    existing = [node.get("id") for node in nodes if node.get("id")]
+    if len(existing) != len(set(existing)):
+        raise ValueError("Semantic tagging requires unique source SVG IDs")
+    probe_prefix = _prefix(root, "grablab-probe")
+    for number, (source, target) in enumerate(zip(nodes, probe.iter())):
+        ident = source.get("id", f"{probe_prefix}{number}")
+        target.set("id", ident)
+        if id(source) not in nonpaint:
+            originals[ident] = source
+    width, height = record["size"]
+    if not all(math.isfinite(value) and value > 0 for value in (width, height)):
+        raise ValueError("Capture logical size must be positive and finite")
+    geometry = GeometrySVG.parse(
+        io.StringIO(ET.tostring(probe, encoding="unicode")),
+        width=width,
+        height=height,
+        on_error="raise",
+    )
+    # Root physical dimensions may use Qt's mm units; logical capture frame wins.
+    sx, sy = width / float(geometry.width), height / float(geometry.height)
+    widgets = sorted(
+        record["extensions"]["widgets"],
+        key=lambda node: node["rect"][2] * node["rect"][3],
+    )
+    stats = {
+        "tagged": 0,
+        "text_anchors": 0,
+        "unmatched": 0,
+        "unsupported": 0,
+        "limits": [
+            "Bounds containment is not paint ownership; clipping and text metrics are not resolved"
+        ],
+    }
+    used = {node.get("id") for node in nodes if node.get("id")}
+    for shape in geometry.elements():
+        source = originals.get(shape.id)
+        if source is None or source.tag.rsplit("}", 1)[-1] in ("svg", "g", "defs"):
+            continue
+        if isinstance(shape, Text):
+            point = Point(shape.x, shape.y) * shape.transform
+            bounds = (point.x, point.y, point.x, point.y)
+        elif isinstance(shape, (Shape, GeometryImage)):
+            bounds = shape.bbox()
+        else:
+            stats["unsupported"] += 1
+            continue
+        if bounds is None:
+            stats["unsupported"] += 1
+            continue
+        x0, y0, x1, y1 = bounds
+        matches = [
+            widget
+            for widget in widgets
+            if widget["rect"][0] <= x0 * sx
+            and widget["rect"][1] <= y0 * sy
+            and x1 * sx <= widget["rect"][0] + widget["rect"][2]
+            and y1 * sy <= widget["rect"][1] + widget["rect"][3]
+        ]
+        if not matches:
+            stats["unmatched"] += 1
+            continue
+        ident = matches[0]["id"]
+        source.set("data-widget", ident)
+        if isinstance(shape, Text):
+            source.set("data-widget-method", "text-anchor")
+            stats["text_anchors"] += 1
+        if not source.get("id"):
+            safe = re.sub(r"[^A-Za-z0-9_.-]", "-", ident)
+            name, n = "widget-" + safe, 1
+            while name in used:
+                name, n = f"widget-{safe}-{n}", n + 1
+            source.set("id", name)
+            used.add(name)
+        stats["tagged"] += 1
+    return stats
+
+
+def deduplicate_paths(root: ET.Element) -> dict:
+    """Remove only identical consecutive opaque fill-only paths in safe groups.
+
+    shortcut: antialiased edges may differ even for opaque fills, inspect the
+    processed render before use; disable this opt-in cleanup for exact pixels.
+    """
+    stats = {"removed": 0}
+    allowed = {"d", "fill", "fill-rule", "transform"}
+
+    def visit(parent: ET.Element, safe: bool) -> None:
+        safe = safe and not any(
+            key in parent.attrib
+            for key in (
+                "style",
+                "opacity",
+                "fill-opacity",
+                "stroke",
+                "filter",
+                "mask",
+                "clip-path",
+                "class",
+            )
+        )
+        previous = None
+        for node in list(parent):
+            eligible = (
+                safe
+                and parent.tag in (f"{{{SVG}}}g", f"{{{SVG}}}svg")
+                and node.tag == f"{{{SVG}}}path"
+                and set(node.attrib) <= allowed
+                and not len(node)
+            )
+            fill = node.get("fill", "")
+            eligible = eligible and bool(
+                re.fullmatch(r"#[\da-fA-F]{3}|#[\da-fA-F]{6}|black|white", fill)
+            )
+            signature = tuple(sorted(node.attrib.items())) if eligible else None
+            if signature is not None and signature == previous:
+                parent.remove(node)
+                stats["removed"] += 1
+            else:
+                visit(node, safe)
+            previous = signature
+
+    visit(root, True)
+    return stats
+
+
+def compose(
+    panels: list[tuple[str | Path, float, float]], *, width: float, height: float
+) -> ET.Element:
+    """Assemble SVGs at explicit logical positions in input paint order."""
+    if not all(math.isfinite(value) and value > 0 for value in (width, height)):
+        raise ValueError("Composition dimensions must be positive and finite")
+    root = ET.Element(
+        f"{{{SVG}}}svg",
+        width=str(width),
+        height=str(height),
+        viewBox=f"0 0 {width} {height}",
+    )
+    for number, (path, x, y) in enumerate(panels):
+        if not all(math.isfinite(value) for value in (x, y)):
+            raise ValueError("Panel positions must be finite")
+        panel = read_svg(path)
+        _namespace(panel, f"panel-{number}-")
+        if panel.get("viewBox"):
+            _, _, panel_width, panel_height = map(
+                float, panel.get("viewBox").replace(",", " ").split()
+            )
+            panel.set("width", f"{panel_width:g}")
+            panel.set("height", f"{panel_height:g}")
+        panel.set("x", str(x))
+        panel.set("y", str(y))
+        root.append(panel)
+    return root
+
+
+def restyle(
+    root: ET.Element,
+    *,
+    stroke: str | None = None,
+    fill: str | None = None,
+    stroke_width: float | None = None,
+    background: str | None = None,
+    font: str = "system-ui",
+    wireframe: bool = False,
+) -> dict:
+    """Restyle presentation/inline CSS; retain opacity and none paints.
+
+    Class stylesheet rules are intentionally retained; inline style wins for the
+    changed properties. Wireframe uses no fills, monochrome outlines and text.
+    """
+    if stroke_width is not None and (
+        not math.isfinite(stroke_width) or stroke_width < 0
+    ):
+        raise ValueError("Stroke width must be finite and nonnegative")
+    if wireframe:
+        stroke, fill = stroke or "#333333", "none"
+        stroke_width = 1 if stroke_width is None else stroke_width
+    stats = {"styled": 0}
+    for node in root.iter():
+        kind = node.tag.rsplit("}", 1)[-1]
+        if kind not in (
+            "svg",
+            "g",
+            "path",
+            "rect",
+            "circle",
+            "ellipse",
+            "polygon",
+            "polyline",
+            "line",
+            "text",
+            "tspan",
+        ):
+            continue
+        css = dict(
+            part.split(":", 1)
+            for part in node.get("style", "").split(";")
+            if ":" in part
+        )
+        css = {key.strip(): value.strip() for key, value in css.items()}
+        updates = {"font-family": font}
+        for key, value in (
+            ("stroke", stroke),
+            ("fill", fill),
+            ("stroke-width", stroke_width),
+        ):
+            if value is not None and (
+                key == "stroke-width"
+                or (wireframe and key == "stroke")
+                or css.get(key, node.get(key)) != "none"
+            ):
+                updates[key] = str(value)
+        if wireframe and kind in ("text", "tspan"):
+            updates.update(fill=stroke, stroke="none")
+        node.attrib.update(updates)
+        css.update(updates)
+        node.set("style", ";".join(f"{key}:{value}" for key, value in css.items()))
+        stats["styled"] += 1
+    if background is not None:
+        root.insert(
+            0,
+            ET.Element(
+                f"{{{SVG}}}rect",
+                {
+                    "x": "0",
+                    "y": "0",
+                    "width": "100%",
+                    "height": "100%",
+                    "fill": background,
+                    "data-grablab-background": "true",
+                },
+            ),
+        )
+    return stats

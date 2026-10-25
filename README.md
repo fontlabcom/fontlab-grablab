@@ -109,3 +109,56 @@ property. QMenu/QMenuBar actions have their visible, nonempty rectangles measure
 only when wholly inside the widget and captured image; hidden/null/clipped owned
 actions stay outside. Designer action/addaction elements preserve supported
 QAction labels/state; submenu structure and signal wiring remain runtime-only.
+
+## Host-free SVG processing
+
+Install `fontlab-grablab[svg]` outside FontLab for postprocessing. Pillow decodes
+PNG pixels; pure-Python svgelements measures transformed SVG geometry. Neither
+dependency loads during native capture or ordinary `import grablab`.
+
+```python
+import json
+from pathlib import Path
+from grablab import svg
+
+root = svg.read_svg("panel.svg")
+index = svg.build_raster_index("assets-manifest.json", source_dirs=["source-pngs"])
+mapping = svg.map_images(root, index)  # JSON-serializable URI -> candidates/status
+stats = {"inline": svg.inline_images(root, mapping)}
+stats["widgets"] = svg.tag_widgets(root, json.loads(Path("panel.json").read_text()))
+svg.write_svg(root, "panel-processed.svg")  # refuses any existing output
+svg.restyle(root, wireframe=True, background="white")
+svg.write_svg(root, "panel-wireframe.svg")
+```
+
+Every data URI must match known decoded PNG dimensions/RGBA exactly, apart from
+RGB beneath zero alpha. Candidates disclose `match="pixel-exact"` for exported
+PNG matches and `match="source-name"` for authoritative source PNGs associated by
+unique original asset name (only `@2x` is normalized). The latter preserves
+provenance but does not claim the new vector renders exactly like the old PNG.
+Multiple distinct SVG candidates are ambiguous and stay rasterized; unknown,
+unsupported and malformed images also remain untouched. Retain mapping and index
+JSON as receipts; paths may contain local/private information.
+
+Nested SVGs retain image viewport/aspect ratio, ancestor transforms and clipping;
+local IDs, fragment/url references and CSS classes are namespaced. `tag_widgets`
+tags original elements in place using transformed bounds and the smallest
+containing `extensions.widgets[].rect`, preserving paint order and existing IDs.
+New IDs derive from widget IDs; `data-widget` records the exact widget identity.
+Text uses its transformed anchor, disclosed by `data-widget-method="text-anchor"`,
+rather than invented font metrics. Bounds containment is approximate ownership:
+clipping, text extents, use-instance ownership and arbitrary CSS are not inferred.
+Unsupported/unmatched counts and limits remain in returned stats.
+
+`compose([(path, x, y), ...], width=..., height=...)` uses explicit logical
+positions, input paint order, source viewBox sizes and collision-free local IDs.
+`restyle` changes stroke/fill/width/background/font (`system-ui` by default),
+including inline CSS. Wireframe keeps readable monochrome text and outlines.
+External resources, global CSS selectors and `!important` rules need separate
+review; helpers target trusted Qt captures and the known Illustrator assets.
+
+Optional `deduplicate_paths` removes only consecutive identical opaque fill-only
+paths without IDs, strokes or inherited opacity/effects. Repeated antialiased
+edges can differ; compare processed renders or leave cleanup disabled when exact
+pixels matter. Raw inputs remain separate. Host-free tests and asset indexing do
+not establish native screenshot fidelity.

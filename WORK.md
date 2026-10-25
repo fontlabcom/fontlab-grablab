@@ -4,6 +4,62 @@ this_file: WORK.md
 
 # Migration evidence
 
+## Issue 131 Task 3 — 2026-10-25 host-free SVG candidate
+
+Scope: new `grablab.svg`, its tests, optional dependencies and these docs only;
+capture/snapshot files and canonical/live installations remain untouched. Based
+on reviewed c685e24. Read the full issue/brief, global plan and local guidance.
+Reviewed official svgelements README/API and installed parser source before use:
+https://github.com/meerk40t/svgelements (SVG.parse/reify, bbox, transforms).
+Pillow + pure-Python svgelements are lazy optional imports; no custom path parser.
+
+Tests-first collection initially failed because the module did not exist. The
+first focused implementation run passed 7/8: the test's translated second path
+actually exceeded the root rectangle; corrected the fixture, preserving the
+containment rule. Extended tests now cover pixel encodings/transparent RGB,
+candidate ambiguity, named authoritative associations/conflicts, viewport/ID/CSS
+namespacing, transformed paths/text anchors, dedup safety, composition, restyling
+and output protection. Invalid path data that svgelements represents as an empty
+shape is counted unsupported, never silently tagged.
+
+Environment is task-owned external `../svg-env`, Python 3.11.17/arm64. Initial
+full run there had 11 missing-fontlabapp setup errors; installed the existing
+local dependency into that environment. A trial using the canonical interpreter
+with 3.11 site-packages failed because that interpreter is actually 3.12; no
+canonical environment was altered. Final commands (all exit 0):
+
+```
+rtk proxy uv venv --python /opt/homebrew/bin/python3.11 /Volumes/Falstaff4T/fontlab-scripting-data/issue131/svg-env
+rtk proxy uv pip install --python /Volumes/Falstaff4T/fontlab-scripting-data/issue131/svg-env/bin/python svgelements
+rtk proxy uv pip install --python /Volumes/Falstaff4T/fontlab-scripting-data/issue131/svg-env/bin/python -e /Users/adam/Developer/vcs3/github.fontlabcom/fontlab-scripting/fontlab-fontlabapp
+rtk proxy uv pip install --python /Volumes/Falstaff4T/fontlab-scripting-data/issue131/svg-env/bin/python pytest-cov
+rtk proxy env PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 /Volumes/Falstaff4T/fontlab-scripting-data/issue131/svg-env/bin/python -m pytest -q tests/test_svg.py
+rtk proxy env PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 /Volumes/Falstaff4T/fontlab-scripting-data/issue131/svg-env/bin/python -m pytest -p pytest_cov --cov=grablab.svg --cov-branch --cov-report=term-missing --cov-report=json:/Volumes/Falstaff4T/fontlab-scripting-data/issue131/svg-coverage.json -q
+rtk proxy uvx ruff check src/grablab/svg.py tests/test_svg.py
+```
+
+Final full suite and coverage are recorded in task-3-report.md and the retained
+coverage receipt (zero exclusions). Ruff import-order
+findings were corrected, and only the two owned Python files were formatted.
+
+Actual manifest audit reads all 531 exports / 1062 PNG variants (1042 exact
+pixel groups), and all 3658 PNGs in the three authoritative Proteus folders.
+Initial strict pixel audit: 54 source matches, 1 ambiguity, 3603 unmatched.
+Per root's explicit clarification, original asset names also associate source
+PNG bytes with their authoritative vector; only `@2x` is stripped. Data URIs
+must still equal known PNG pixels. Final source census: 1045 matched (54
+pixel-exact, 991 source-name), 50 ambiguous, 2563 unmatched. No fuzzy matching
+or arbitrary conflict selection. External receipts preserve both audits:
+`../svg-raster-index.json`, `../svg-raster-index-named.json`,
+`../svg-index-summary.json`, `../svg-coverage.json`.
+
+Wait, but: source-name means provenance, not render equivalence. Geometry tags
+express coordinate containment; text has anchor-only tags. General CSS,
+clipping/text extents/use-instance ownership and processed rendering need runtime
+review. Dedup is opt-in because repeated opaque antialiased edges can differ.
+Root owns native calls, actual screenshot/artifact acceptance and promotion;
+none was run or claimed in this task. No push or live install.
+
 2026-10-13: Preserved complete source files and licenses, with source revision and
 SHA256 in MIGRATION.json. Native source baseline is recorded in workspace evidence.
 Copied all source before scoped fixes; original repository remains unchanged.

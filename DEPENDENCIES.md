@@ -9,3 +9,7 @@ this_file: DEPENDENCIES.md
 - fontlab-fontlabapp: migrated application/UI/preferences and utility context.
 - Native PythonQt QtGui/QtSvg/Qt and FontLab: supplied by the host for capture.
 - Standard pathlib, tempfile and ElementTree: existing file/SVG implementation.
+- Optional `svg` extra: Pillow >=10 decodes PNGs into exact RGBA pixel keys;
+  svgelements >=1.9.6 supplies maintained pure-Python SVG path/shape/transform
+  bounds, avoiding a custom geometry parser or NumPy/SciPy dependency. Both are
+  also test dependencies and are imported lazily only by postprocessing helpers.

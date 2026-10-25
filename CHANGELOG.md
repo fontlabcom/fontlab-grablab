@@ -4,6 +4,17 @@ this_file: CHANGELOG.md
 
 # Changelog
 
+## 2026-10-25 — issue 131 host-free SVG pipeline
+
+- Add explicit SVG postprocessing: provenance-aware raster/vector mapping,
+  namespaced inlining, coordinate widget tags on original paint elements,
+  conservative opt-in duplicate cleanup, logical composition and restyling.
+- Preserve raw captures through exclusive new output files. Disclose ambiguous,
+  unmatched and unsupported raster/semantic cases; distinguish source-name vector
+  associations from exported pixel-equivalent matches.
+- Add optional Pillow/svgelements dependencies and host-free regression controls.
+  Native screenshot and rendered-geometry acceptance remain separate.
+
 ## 2026-10-15 — completed checklist (moved from TODO.md)
 
 - Record source provenance and baseline.
