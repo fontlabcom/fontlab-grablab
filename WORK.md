@@ -4,6 +4,42 @@ this_file: WORK.md
 
 # Migration evidence
 
+## Issue 131 Task 7 — 2026-10-26 high-level screen/canvas bundles
+
+Base2644bef, isolated checkout only. Read AGENTS/README/WORK/CHANGELOG, issue131
+Task7 brief and all repository callers of grabCanvas/grabScreens/grabScreenPNG.
+Root holds the native modal/fence; no native calls, installs or icon-tool edits.
+No dependencies added. Read official Qt5.15 source documentation for
+QSvgRenderer validity/render bounds, QImage transparent initialization and
+QPainter begin/end through the Qt GitHub mirrors; archive/qt.io URLs failed.
+
+Tests-first RED: five new route controls failed (unpaired screens, ignored PNG
+canvas format, missing same-source rendering and render-failure restoration).
+Reused the widget route's same-filesystem staging/exclusive links via one shared
+publisher, preserving its rollback tests. Existing screen filtering test now
+stubs the high-level bundle boundary; alternative-export test supplies a real
+minimal SVG before triggering its existing failure. New tests measure screen
+DPR2/single-capture/wrapper bytes, format flags, sidecar collisions, exact native
+SVG bytes fed to PNG rendering, alternative/dark ordering, PDF retention,
+property/callable Qt getters, invalid/null images, begin/render/save failures,
+renderer disposal, painter end, temporary export cleanup and public aggregation.
+
+Exact full-suite command (exit0):
+
+```
+rtk proxy env COVERAGE_FILE=/Volumes/Falstaff4T/fontlab-scripting-data/issue131/task7.coverage PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 /Volumes/Falstaff4T/fontlab-scripting-data/issue131/svg-env/bin/python -m pytest -p pytest_cov --cov=grablab.grab --cov-branch --cov-report=term-missing --cov-report=json:/Volumes/Falstaff4T/fontlab-scripting-data/issue131/task7-coverage.json -q
+```
+
+Focused capture tests and full source suite pass; final counts/coverage are in
+task-7-report.md and the external coverage receipt. Ruff passes for the new test
+file and runtime-error selection on touched source; broader legacy lint has
+pre-existing shebang/import/style findings and was not globally reformatted.
+
+Wait, but: screen SVG is deliberately raster-backed. Canvas PNG is a Qt render
+of a native vector export, not another viewport screenshot. Non-widget semantic
+UI is unknown and no .ui is fabricated. Native screen permission/DPR/renderer
+bindings, actual variants and installed-artifact acceptance remain root gates.
+
 ## Issue 131 Task 3 — 2026-10-25 host-free SVG candidate
 
 ### Review fix round1

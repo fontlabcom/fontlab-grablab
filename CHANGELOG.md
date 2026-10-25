@@ -4,6 +4,16 @@ this_file: CHANGELOG.md
 
 # Changelog
 
+## 2026-10-26 — issue 131 screen/canvas pairing
+
+- Pair high-level screen captures as PNG plus explicitly raster-backed SVG;
+  preserve one capture, logical geometry, physical pixels/DPR and metadata.
+- Pair all native canvas vector variants with PNG rendered from that same SVG;
+  record source viewBox/frame mapping and preserve flags, dark/alternative/PDF
+  behavior, painter cleanup and preference restoration.
+- Reuse exclusive staged bundle publication and JSON sidecars for non-widget
+  captures without inventing Designer UI. Preserve primitive return interfaces.
+
 ## 2026-10-25 — issue 131 host-free SVG pipeline
 
 - Review fix round1: retain contradictory authoritative-name candidates beside

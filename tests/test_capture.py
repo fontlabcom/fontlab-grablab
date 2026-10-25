@@ -78,8 +78,10 @@ def test_alternative_canvas_failure_restores_view_and_dark_preference(grab, monk
     def export(path, **kwargs):
         if state['alternative']:
             raise RuntimeError('alternative export failure')
+        path.write_text('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 60"/>')
         return path
     monkeypatch.setattr(grab, 'getCanvasSVG', export)
+    monkeypatch.setattr(grab, '_renderCanvasPNG', lambda source, destination: destination.write_bytes(b'png') and destination)
     with pytest.raises(RuntimeError, match='alternative export failure'):
         grab.grabCanvas()
     assert not state['alternative'], 'alternative view toggle must be paired on failure'
@@ -102,7 +104,7 @@ def test_svg_metadata_is_added_without_existing_elements(grab, tmp_path):
 def test_failed_screen_capture_does_not_count_as_a_saved_file(grab,monkeypatch):
     grab.app.qapp = types.SimpleNamespace(screens=lambda: [object()])
     grab.pref.grab_screens_only = []
-    monkeypatch.setattr(grab,'grabScreenPNG',lambda screen,number: None)
+    monkeypatch.setattr(grab,'_grabScreen',lambda screen,number: [])
     assert grab.grabScreens() == [], 'failed screen capture must not appear in saved paths'
 
 

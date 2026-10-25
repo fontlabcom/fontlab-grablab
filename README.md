@@ -79,7 +79,7 @@ FontSnap authorship or an identical capture policy. Identical records are embedd
 in PNG text key `grablab` and SVG `<metadata id="grablab-metadata">`.
 `size`, `rects`, and widget coordinates are logical units; `pixels` records actual
 PNG dimensions and `dpr` its device ratio. Use `pixels / size` per axis for
-fractional-scale mapping. SVG-only captures leave raster measurements null.
+fractional-scale mapping. Widget SVG-only captures leave raster measurements null.
 
 `extensions.widgets` records the bounded visible QWidget hierarchy (at most 2,000
 widgets), root-relative `rect`, parent-relative `geometry`, original semantic
@@ -98,8 +98,8 @@ Coordinates describe widget rectangles, including portions clipped by ancestors;
 they do not prove pixel ownership. Directly owned named actions absent from
 rectangles populate `context.outside`; remote `reaches`, opener, build, theme and
 background stay explicitly unknown where unmeasured. Truncation and limitations
-are disclosed in JSON and the UI comment. Low-level canvas/screen exports retain
-their existing surfaces; full widget sidecars belong to widget capture methods.
+are disclosed in JSON and the UI comment. Native SVG/PDF primitives retain their
+existing interfaces; high-level non-widget bundles are described below.
 Native artifact and runtime acceptance of this new bundle is pending.
 
 Designer content uses writable properties for known standard controls; read-only
@@ -109,6 +109,30 @@ property. QMenu/QMenuBar actions have their visible, nonempty rectangles measure
 only when wholly inside the widget and captured image; hidden/null/clipped owned
 actions stay outside. Designer action/addaction elements preserve supported
 QAction labels/state; submenu structure and signal wiring remain runtime-only.
+
+## Screen and canvas bundles
+
+`grabScreens()` respects the screen-selection and PNG/SVG flags, captures each
+chosen screen once, and publishes requested images plus one JSON sidecar under
+a shared basename. Its SVG embeds that same PNG in logical screen coordinates:
+`extensions.capture_kind="screen-raster"` explicitly discloses a raster-backed
+representation, not desktop vectorization. Actual PNG pixels/DPR and desktop
+geometry are retained. SVG-only still embeds a temporary PNG; it publishes no
+standalone PNG. `grabScreenPNG` retains its single PNG-path/None interface.
+
+`grabCanvas()` keeps its four native workspace vector variants and optional PDF.
+Each enabled PNG renders the exact paired SVG through Qt QSvgRenderer into an
+owned QImage, with transparent initialization and guaranteed painter cleanup.
+`extensions.capture_kind="canvas-export"`, `source_viewBox` and `frame_mapping`
+describe the native vector frame, logical dimensions and raster scale. PNG uses
+DPR1 at ceil(viewBox width/height); it does not claim correspondence to another
+editor viewport. PNG-only keeps its source SVG temporary; SVG-only skips rendering.
+
+These non-widget captures have empty semantic records and no fabricated `.ui`.
+They reuse exclusive staged publication, collision checks and failure rollback;
+rendering preferences and alternative/dark toggles restore on failure. Return
+lists still contain only image paths (plus the existing optional PDF). Source
+tests do not qualify native screen/canvas behavior or faithful Qt rendering.
 
 ## Host-free SVG processing
 
