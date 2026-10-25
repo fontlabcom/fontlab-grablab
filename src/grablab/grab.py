@@ -30,6 +30,10 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import shutil
+import json
+import os
+
+from .snapshot import snapshot, ui_xml, free_bundle, embed_svg, native_list
 from contextlib import contextmanager
 from functools import wraps
 from typing import Any, Callable, Iterator
@@ -147,12 +151,14 @@ class Grab(object):
             return self.path(self.pref.folder_base, folder=True)
 
     def getGrabPath(self, name: Any, format: Any, dup: Any=0) -> Any:
+        if getattr(self, "_bundle_base", None) is not None:
+            return self._bundle_base.with_suffix("." + format)
         while True:
             dupstr = f"_{dup}" if dup else ""
             path = self.path(Path(self.grab_folder,
                 f"{self.pref.naming_prefix}{name}_{self.timestamp}{self.grab_suffix}{dupstr}.{format}"))
             if not path.exists():
-                return path
+                return free_bundle(path) if format in ("png", "svg") else path
             dup += 1
 
     @with_capture_preferences
@@ -171,7 +177,14 @@ class Grab(object):
     @with_capture_preferences
     def getPixmapPNG(self, pixmap: Any, path: Any, title: Any="", description: Any="") -> Any:
         image = pixmap.toImage()
-        path = self.path(self.addSizeToPath(path, image.width(), image.height()))
+        path = self.path(path)
+        if path.exists():
+            raise FileExistsError(path)
+        record = getattr(self, "_bundle_record", None)
+        if record is not None:
+            record["pixels"] = [image.width(), image.height()]
+            record["dpr"] = image.devicePixelRatio()
+            image.setText("grablab", json.dumps(record, ensure_ascii=False, sort_keys=True))
         image.setDotsPerMeterX(image.dotsPerMeterX() * image.devicePixelRatio())
         image.setDotsPerMeterY(image.dotsPerMeterY() * image.devicePixelRatio())
         image.setText("Title", title)
@@ -182,7 +195,9 @@ class Grab(object):
     @with_capture_preferences
     def getWidgetSVG(self, widget: Any, path: Any, title: Any="", description: Any="") -> Any:
         tmp = self.tmpPath(suffix=".svg")
-        path = self.addSizeToPath(path, widget.width, widget.height)
+        path = self.path(path)
+        if path.exists():
+            raise FileExistsError(path)
         svg_gen = QSvgGenerator()
         svg_io = QBuffer()
         svg_gen.setSize(widget.size)
@@ -195,9 +210,11 @@ class Grab(object):
         svg = svg_io.data().data().decode("utf-8")
         tmp.write_text(svg, encoding="utf-8")
         self.optimizeSVG(tmp, title, description)
+        if getattr(self, "_bundle_record", None) is not None:
+            embed_svg(tmp, self._bundle_record)
         return shutil.move(tmp, self.path(path)) if self.path(tmp).is_file() else None
 
-    def optimizeSVG(self, path: Any, title: Any="", description: Any="") -> Any:
+    def optimizeSVG(self, path: Any, title: Any="", description: Any="", *, restyle: bool=False) -> Any:
         if not self.path(path).is_file():
             return
         root = ET.parse(path).getroot()
@@ -216,9 +233,11 @@ class Grab(object):
                 el = ET.SubElement(root, f"{{{svg_ns}}}desc")
             el.text = description
         for el in root.findall(".//*[@font-family='.AppleSystemUIFont']"):
-            el.attrib["font-family"] = "system-ui"
+            if restyle:
+                el.attrib["font-family"] = "system-ui"
         for el in root.findall(".//*[@stroke-width='1']"):
-            el.attrib["stroke-width"] = "0.75"
+            if restyle:
+                el.attrib["stroke-width"] = "0.75"
         svg = ET.tostring(root, encoding="utf-8", xml_declaration=True).decode("utf-8")
         with open(self.path(path), "w", encoding="utf-8") as f:
             f.write(svg)
@@ -271,6 +290,9 @@ class Grab(object):
         return paths
 
     def grabWidgetPNG(self, widget: Any, abbrtype: Any, name: Any, descriptor: Any="") -> Any:
+        if getattr(self, "_bundle_base", None) is None:
+            paths = self.grabWidget(widget, abbrtype, name, descriptor, _formats=("png",))
+            return next((path for path in paths if path.suffix == ".png"), None)
         grab_path = self.getGrabPath(f"{abbrtype}{self.dark}_{name}", "png")
         if path := self.getPixmapPNG(
             widget.grab(),
@@ -283,6 +305,9 @@ class Grab(object):
             return None
 
     def grabWidgetSVG(self, widget: Any, abbrtype: Any, name: Any, descriptor: Any="") -> Any:
+        if getattr(self, "_bundle_base", None) is None:
+            paths = self.grabWidget(widget, abbrtype, name, descriptor, _formats=("svg",))
+            return next((path for path in paths if path.suffix == ".svg"), None)
         grab_path = self.getGrabPath(f"{abbrtype}{self.dark}_{name}", "svg")
         if path := self.getWidgetSVG(
             widget,
@@ -295,16 +320,48 @@ class Grab(object):
             return None
 
     @with_capture_preferences
-    def grabWidget(self, widget: Any, abbrtype: Any, name: Any, descriptor: Any="") -> Any:
-        paths = []
-        if widget:
-            if self.pref.grab_png:
-                if path := self.grabWidgetPNG(widget, abbrtype, name, descriptor):
-                    paths.append(path)
-            if self.pref.grab_svg:
-                if path := self.grabWidgetSVG(widget, abbrtype, name, descriptor):
-                    paths.append(path)
-        return paths
+    def grabWidget(self, widget: Any, abbrtype: Any, name: Any, descriptor: Any="", *, _formats: Any=None) -> Any:
+        if not widget:
+            return []
+        target = self.getGrabPath(f"{abbrtype}{self.dark}_{name}", "png")
+        formats = _formats if _formats is not None else tuple(fmt for fmt in ("png", "svg") if getattr(self.pref, "grab_" + fmt))
+        record = snapshot(widget, target.stem, target.with_suffix("." + (formats[0] if formats else "png")).name)
+        published = []
+        # Stage a complete bundle; exclusive links never replace another capture.
+        with tempfile.TemporaryDirectory(dir=self.grab_folder) as folder:
+            self._bundle_base = Path(folder) / target.name
+            self._bundle_record = record
+            try:
+                paths = []
+                if "png" in formats:
+                    path = self.grabWidgetPNG(widget, abbrtype, name, descriptor)
+                    if path is None:
+                        return []
+                    paths.append(Path(path))
+                if "svg" in formats:
+                    path = self.grabWidgetSVG(widget, abbrtype, name, descriptor)
+                    if path is None:
+                        return []
+                    paths.append(Path(path))
+                if not paths:
+                    return []
+                sidecar = self._bundle_base.with_suffix(".json")
+                sidecar.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+                ui = self._bundle_base.with_suffix(".ui")
+                ui.write_text(ui_xml(record), encoding="utf-8")
+                paths.extend([sidecar, ui])
+                for source in paths:
+                    destination = target.with_suffix(source.suffix)
+                    os.link(source, destination)
+                    published.append(destination)
+                return [path for path in published if path.suffix in (".png", ".svg")]
+            except BaseException:
+                for path in published:
+                    path.unlink()
+                raise
+            finally:
+                del self._bundle_base
+                del self._bundle_record
 
     @with_capture_preferences
     def grabCanvas(self) -> Any:
@@ -406,7 +463,7 @@ class Grab(object):
     def grabMenu(self, menu: Any, text: Any) -> Any:
         paths = []
         paths.extend(self.grabWidget(menu, "m", text, f"Menu: {text}"))
-        for action in menu.actions():
+        for action in native_list(menu, "actions"):
             if action.isVisible() and action.menu():
                 name = f"{slugify(text)}_{slugify(action.text)}"
                 paths.extend(self.grabMenu(action.menu(), name))
@@ -414,7 +471,7 @@ class Grab(object):
 
     def grabMainMenu(self) -> Any:
         paths = []
-        for qmenu in self.app.ui.qmenus.children():
+        for qmenu in native_list(self.app.ui.qmenus, "children"):
             if isinstance(qmenu, QMenu):
                 name = f"{slugify(qmenu.title)}"
                 paths.extend(self.grabMenu(qmenu, name))

@@ -90,7 +90,7 @@ def test_svg_metadata_is_added_without_existing_elements(grab, tmp_path):
     import xml.etree.ElementTree as ET
     path = tmp_path / 'widget.svg'
     path.write_text('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 60"><g font-family=".AppleSystemUIFont" stroke-width="1"/></svg>')
-    grab.optimizeSVG(path, title='Title', description='Description')
+    grab.optimizeSVG(path, title='Title', description='Description', restyle=True)
     root = ET.parse(path).getroot()
     assert root.attrib['width'] == '80' and root.attrib['height'] == '60'
     assert root.find('{http://www.w3.org/2000/svg}title').text == 'Title'
@@ -104,3 +104,83 @@ def test_failed_screen_capture_does_not_count_as_a_saved_file(grab,monkeypatch):
     grab.pref.grab_screens_only = []
     monkeypatch.setattr(grab,'grabScreenPNG',lambda screen,number: None)
     assert grab.grabScreens() == [], 'failed screen capture must not appear in saved paths'
+
+
+def test_dpr2_bundle_pairing_and_metadata_roundtrip(grab, monkeypatch):
+    import json
+    import xml.etree.ElementTree as ET
+    from grablab.snapshot import embed_svg
+    from test_snapshot import widget
+    text = {}
+    def save(path):
+        Path(path).write_bytes(b"PNG-double")
+        return True
+    image = types.SimpleNamespace(width=lambda: 160, height=lambda: 120,
+        dotsPerMeterX=lambda: 1, dotsPerMeterY=lambda: 1, devicePixelRatio=lambda: 2,
+        setDotsPerMeterX=lambda x: None, setDotsPerMeterY=lambda x: None,
+        setText=lambda key, val: text.update({key: val}), save=save)
+    target = widget(children=[widget("label", x=4, text="Hello")])
+    target.grab = lambda: types.SimpleNamespace(toImage=lambda: image)
+    grab.pref.grab_svg = True
+    (grab.grab_folder / "fl_p_test_test.ui").write_text("previous")
+    def svg(widget, path, **kwargs):
+        path.write_text('<svg xmlns="http://www.w3.org/2000/svg"/>')
+        embed_svg(path, grab._bundle_record)
+        return path
+    monkeypatch.setattr(grab, "getWidgetSVG", svg)
+    paths = grab.grabWidget(target, "p", "test")
+    assert len(paths) == 2 and len({p.stem for p in paths}) == 1
+    assert paths[0].stem == "fl_p_test_test_1"
+    record = json.loads(paths[0].with_suffix(".json").read_text())
+    assert record["size"] == [80, 60] and record["pixels"] == [160, 120]
+    assert record["dpr"] == 2
+    assert json.loads(text["grablab"]) == record
+    assert json.loads(ET.parse(paths[1]).find("{http://www.w3.org/2000/svg}metadata").text) == record
+    assert (grab.grab_folder / "fl_p_test_test.ui").read_text() == "previous"
+
+
+def test_sidecar_failure_restores_preferences_and_publishes_nothing(grab, monkeypatch):
+    from test_snapshot import widget
+    before = vars(grab.app.pref).copy()
+    def capture(widget, kind, name, descriptor):
+        path = grab.getGrabPath("unused", "png")
+        path.write_bytes(b"test")
+        return path
+    monkeypatch.setattr(grab, "grabWidgetPNG", capture)
+    def fail(record):
+        raise OSError("sidecar failure")
+    monkeypatch.setattr(sys.modules["grablab.grab"], "ui_xml", fail)
+    with pytest.raises(OSError, match="sidecar failure"):
+        grab.grabWidget(widget(), "p", "test")
+    assert list(grab.grab_folder.iterdir()) == []
+    assert vars(grab.app.pref) == before
+    assert not hasattr(grab, "_bundle_base")
+
+
+def test_raw_svg_preserves_stroke_width_and_font(grab, tmp_path):
+    path = tmp_path / "raw.svg"
+    path.write_text('<svg xmlns="http://www.w3.org/2000/svg"><g stroke-width="1" font-family=".AppleSystemUIFont"/></svg>')
+    grab.optimizeSVG(path)
+    import xml.etree.ElementTree as ET
+    assert ET.parse(path).find("{http://www.w3.org/2000/svg}g").attrib == {
+        "stroke-width": "1", "font-family": ".AppleSystemUIFont"}
+
+
+def test_exclusive_publication_rolls_back_without_overwriting(grab, monkeypatch):
+    from test_snapshot import widget
+    def capture(widget, kind, name, descriptor):
+        path = grab.getGrabPath("unused", "png")
+        path.write_bytes(b"new")
+        return path
+    monkeypatch.setattr(grab, "grabWidgetPNG", capture)
+    module = sys.modules["grablab.grab"]
+    link = module.os.link
+    def collide(source, destination):
+        if destination.suffix == ".json":
+            destination.write_text("other process")
+        link(source, destination)
+    monkeypatch.setattr(module.os, "link", collide)
+    with pytest.raises(FileExistsError):
+        grab.grabWidget(widget(), "p", "test")
+    assert [p.suffix for p in grab.grab_folder.iterdir()] == [".json"]
+    assert next(grab.grab_folder.iterdir()).read_text() == "other process"

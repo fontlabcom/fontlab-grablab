@@ -51,3 +51,13 @@ No open work in this repository. Its issue 101 migration scope is complete and r
 # Tasks
 
 No open tasks. Workspace-level work is tracked in the parent TODO.md.
+
+
+## Issue 131 — source candidate, native acceptance pending
+
+- Pair widget PNG/SVG by one collision-safe basename across image/JSON/UI members,
+  independently of DPR; preserve image-only returns and add automatic sidecars.
+- Embed FontSnap-shaped extended records in PNG/SVG and retain bounded visible
+  runtime widget geometry/content in JSON and Qt Designer XML without model walks.
+- Stage bundles and publish exclusively with rollback; retain preference restoration.
+- Make the former SVG font/stroke substitutions explicit `restyle=True` opt-in.

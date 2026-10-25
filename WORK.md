@@ -50,3 +50,27 @@ completion evidence; release code and tag are unchanged.
 Exact command and retained initial failures: parent verification/plan-todo-audit-20261015/baseline-tests.json.
 Completed repository plans were archived where no repository tasks remain;
 workspace integration/release gates remain separate.
+
+
+## Issue 131 Task 1 — 2026-10-25 source candidate
+
+Base f791e5d10ee54a68ca2cd782a76ec3bae8b6e26b. Work only in isolated
+issue131/grablab; canonical installation untouched. Read capture callers/tests,
+FontSnap record at fontsnap.py:2533 and README schema, and official Qt 5.15
+QWidget, QImage text and Designer UI schema documentation. Additive schema was
+written independently; no FontSnap source copied and no dependency added.
+
+Checks (all run through `rtk proxy`; shell cwd this isolated repository):
+- `PYTHONPATH=src /Users/adam/Developer/vcs3/github.fontlabcom/fontlab-scripting/fontlab-grablab/.venv/bin/python -m pytest -q`: baseline 7 passed, exit 0.
+- Same command with `tests/test_snapshot.py` before implementation: collection failed with missing `grablab.snapshot`, exit 2 (expected RED).
+- First full run exposed a shell-quoting-induced f-string syntax error; next exposed a test XPath quoting error. Corrected both; retained failures in task transcript.
+- Final full command: 17 passed, exit 0. Covers DPR2 pairing and embedded JSON equality, sidecar collision/publication rollback, sidecar failure preference restoration, raw/opt-in SVG styling, logical hierarchy/content/XML, password omission/no models, bounded traversal, GC restoration, and directly owned actions.
+- `git diff --check`: exit 0.
+- Optional `python -m pytest -q --cov=grablab.snapshot --cov-report=term-missing` in the same environment: exit 4, pytest-cov is absent; no dependency/environment mutation to add it. Coverage percentage remains unmeasured here.
+
+Wait, but: offline doubles cannot qualify PythonQt serialization or native widget
+rendering. Image-only return counts remain compatible, including native_smoke.py;
+new sidecars are additive. Unsupported layouts/custom painting/icons, clipping
+versus pixel ownership and unknown remote actions are disclosed. Root must run
+ordinary artifact/native capture checks; no native requests, installation or
+push performed here. No claim of full issue131 acceptance.
