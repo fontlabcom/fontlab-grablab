@@ -124,9 +124,10 @@ def test_menu_action_geometry_and_designer_actions(tmp_path, class_name):
         return NS(parent=lambda: root, statusTip=name, objectName=name,
                   text=name.title(), isVisible=lambda: visible,
                   isEnabled=lambda: True, isCheckable=lambda: False, isChecked=lambda: False)
-    shown, hidden, empty, clipped = action("shown"), action("hidden", False), action("empty"), action("clipped")
-    root.actions = lambda: [shown, hidden, empty, clipped]
-    rects = {id(shown): NS(x=lambda: 2, y=lambda: 3, width=lambda: 70, height=lambda: 15),
+    shown, hidden, empty, clipped, unnamed = action("shown"), action("hidden", False), action("empty"), action("clipped"), action("")
+    unnamed.text = "Unidentified label"
+    root.actions = lambda: [shown, hidden, empty, clipped, unnamed]
+    rects = {id(unnamed): NS(x=lambda: 2, y=lambda: 20, width=lambda: 70, height=lambda: 15), id(shown): NS(x=lambda: 2, y=lambda: 3, width=lambda: 70, height=lambda: 15),
              id(empty): NS(x=lambda: 0, y=lambda: 0, width=lambda: 0, height=lambda: 0),
              id(clipped): NS(x=lambda: 75, y=lambda: 3, width=lambda: 70, height=lambda: 15)}
     def action_geometry(item):
@@ -136,10 +137,13 @@ def test_menu_action_geometry_and_designer_actions(tmp_path, class_name):
     record = snapshot(root, "", "x.png")
     assert record["rects"]["shown"] == [2, 3, 70, 15]
     assert record["texts"]["shown"] == "Shown"
+    unnamed_id = record["extensions"]["widgets"][0]["actions"][-1]["id"]
+    assert unnamed_id not in record["rects"] and unnamed_id not in record["texts"]
+    assert record["parts"] == [{"class": "QAction", "rect": [2, 20, 70, 15], "content": record["extensions"]["widgets"][0]["actions"][-1]["content"]}]
     assert record["context"]["outside"] == {"hidden": ["menu"], "empty": ["menu"], "clipped": ["menu"]}
     tree = ET.fromstring(ui_xml(record))
-    assert len(tree.findall("widget/action")) == 4
-    assert len(tree.findall("widget/addaction")) == 4
+    assert len(tree.findall("widget/action")) == 5
+    assert len(tree.findall("widget/addaction")) == 5
     path = tmp_path / "menu.ui"
     path.write_text(ui_xml(record))
     result = subprocess.run([uic_path(), str(path)], capture_output=True, text=True)

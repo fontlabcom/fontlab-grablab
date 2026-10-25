@@ -99,3 +99,18 @@ Wait, but: uic generation proves usable setter output, not native loading/render
 equivalence. Root must rebuild ordinary artifacts and rerun owned captures to
 verify actual relative visibility and menu action geometry in PythonQt. Submenu
 structure, custom widgets and signal wiring retain their disclosed limits.
+
+
+## Issue 131 Task 1 fix round 2 — 2026-10-26
+
+Read task-1-fix1-review.md verbatim. Added unnamed visible menu/menu-bar actions
+to the existing regression; generated IDs incorrectly entered rects/texts in
+both controls (2 failed/8 deselected, exit 1). The shared action measurement now
+keeps generated IDs only in extension/UI references and records unnamed measured
+contents in parts with QAction class, logical rectangle and content. Named
+actions retain rects/texts. No new API, dependency or native operation.
+
+Checks through `rtk proxy`, isolated checkout: the same PYTHONPATH/canonical Python
+pytest command with `tests/test_snapshot.py -k menu_action` passes 2 tests; full
+`-m pytest -q` passes 21 tests (including Qt5 uic subprocesses), exit 0.
+`git diff --check` passes, exit 0. Root still owns rebuilt artifact/native checks.

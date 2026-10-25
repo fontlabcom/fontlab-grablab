@@ -71,3 +71,6 @@ No open tasks. Workspace-level work is tracked in the parent TODO.md.
 - Measure visible contained menu/menu-bar action geometry/text; classify hidden,
   empty and clipped owned actions outside, and emit supported action/addaction UI.
 - Validate generated standard-control and menu XML with actual Qt5 uic.
+
+- Keep unnamed measured menu/menu-bar QAction content in FontSnap-compatible
+  parts; reserve generated IDs for runtime extensions and Designer references.

@@ -146,8 +146,11 @@ def snapshot(widget: Any, title: str, filename: str, max_widgets: int = 2000) ->
                     rw, rh = int(value(widget, "width", 0)), int(value(widget, "height", 0))
                     if aw > 0 and ah > 0 and ax >= 0 and ay >= 0 and ax + aw <= width and ay + ah <= height and x + ax >= 0 and y + ay >= 0 and x + ax + aw <= rw and y + ay + ah <= rh:
                         details["rect"] = [x + ax, y + ay, aw, ah]
-                        rects[details["id"]] = details["rect"]
-                        texts[details["id"]] = details["text"]
+                        if action_semantic:
+                            rects[details["id"]] = details["rect"]
+                            texts[details["id"]] = details["text"]
+                        else:
+                            parts.append({"class": "QAction", "rect": details["rect"], "content": details["content"]})
             node["actions"].append(details)
             if value(action, "parent") is item:
                 local_actions.append((action_semantic, ident))
