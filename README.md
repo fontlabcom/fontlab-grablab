@@ -87,7 +87,8 @@ statusTip/objectName, unique XML-safe `id`, allowlisted control content, and loc
 action associations. The `.ui` is Qt Designer XML with runtime geometry/content;
 JSON retains details unsuitable for Designer. Separate child windows, hidden
 children, models and arbitrary Qt properties are never traversed. The root may
-be hidden for owned test captures. Password text is omitted; other editable
+be hidden for owned test captures; descendants use `isVisibleTo(root)` so explicitly
+shown children painted by `render()` remain represented. Password text is omitted; other editable
 content is captured and may contain document data. No source code is copied
 from FontSnap.
 
@@ -100,3 +101,11 @@ background stay explicitly unknown where unmeasured. Truncation and limitations
 are disclosed in JSON and the UI comment. Low-level canvas/screen exports retain
 their existing surfaces; full widget sidecars belong to widget capture methods.
 Native artifact and runtime acceptance of this new bundle is pending.
+
+Designer content uses writable properties for known standard controls; read-only
+progress/spin display text and unknown-class content remain in JSON. Numeric
+ranges/precision precede values, and checkable precedes the deduplicated checked
+property. QMenu/QMenuBar actions have their visible, nonempty rectangles measured
+only when wholly inside the widget and captured image; hidden/null/clipped owned
+actions stay outside. Designer action/addaction elements preserve supported
+QAction labels/state; submenu structure and signal wiring remain runtime-only.

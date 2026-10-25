@@ -11,6 +11,46 @@ from typing import Any
 
 EXTENSIONS = (".png", ".svg", ".json", ".ui")
 SVG_NS = "http://www.w3.org/2000/svg"
+# Read-only display getters remain in JSON, never as Designer setter properties.
+UI_CONTENT = {
+    "QLabel": {"text": "text"},
+    "QLineEdit": {"text": "text", "placeholderText": "placeholderText"},
+    "QTextEdit": {"toPlainText": "plainText", "placeholderText": "placeholderText"},
+    "QPlainTextEdit": {"toPlainText": "plainText", "placeholderText": "placeholderText"},
+    "QSpinBox": {key: key for key in ("minimum", "maximum", "prefix", "suffix", "value")},
+    "QDoubleSpinBox": {key: key for key in ("decimals", "minimum", "maximum", "prefix", "suffix", "value")},
+    "QProgressBar": {key: key for key in ("minimum", "maximum", "value")}, "QSlider": {"value": "value"},
+    "QDial": {"value": "value"}, "QScrollBar": {"value": "value"},
+    "QMenu": {"title": "title"},
+    "QGroupBox": {"title": "title", "checked": "checked", "isChecked": "checked", "checkable": "checkable", "isCheckable": "checkable"},
+}
+for _class in ("QPushButton", "QToolButton", "QCheckBox", "QRadioButton", "QCommandLinkButton"):
+    UI_CONTENT[_class] = {"text": "text", "checked": "checked", "isChecked": "checked", "checkable": "checkable", "isCheckable": "checkable"}
+
+
+def unique_id(semantic: str, fallback: str, used: set) -> str:
+    base = re.sub(r"[^\w.-]+", "_", semantic).strip("_.") or fallback
+    ident, number = base, 1
+    while ident in used:
+        ident, number = f"{base}_{number}", number + 1
+    used.add(ident)
+    return ident
+
+
+def visible_to(item: Any, root: Any) -> bool:
+    """Mirror QWidget.render children even when the owned root is hidden."""
+    method = getattr(item, "isVisibleTo", None)
+    try:
+        return bool(method(root)) if callable(method) else bool(value(item, "isVisible", value(item, "visible", False)))
+    except (TypeError, RuntimeError):
+        return False
+
+
+def write_property(element: Any, name: str, val: Any) -> None:
+    prop = ET.SubElement(element, "property", name=name)
+    kind = "bool" if isinstance(val, bool) else "number" if isinstance(val, int) else "double" if isinstance(val, float) else "string"
+    ET.SubElement(prop, kind).text = str(val).lower() if isinstance(val, bool) else str(val)
+
 
 
 def value(obj: Any, name: str, default: Any = None) -> Any:
@@ -57,7 +97,7 @@ def snapshot(widget: Any, title: str, filename: str, max_widgets: int = 2000) ->
     local_actions = []
     while pending and len(nodes) < max_widgets:
         item, parent, px, py = pending.pop()
-        if parent is not None and (value(item, "isWindow", False) or not value(item, "isVisible", value(item, "visible", False))):
+        if parent is not None and (value(item, "isWindow", False) or not visible_to(item, widget)):
             continue
         if value(item, "geometry") is None:
             continue  # QObject children such as models are deliberately not traversed.
@@ -71,16 +111,12 @@ def snapshot(widget: Any, title: str, filename: str, max_widgets: int = 2000) ->
         object_name = str(value(item, "objectName", "") or "")
         status = str(value(item, "statusTip", "") or "")
         semantic = status or object_name
-        base = re.sub(r"[^\w.-]+", "_", semantic).strip("_.") or f"widget_{len(nodes)}"
-        ident, number = base, 1
-        while ident in used:
-            ident, number = f"{base}_{number}", number + 1
-        used.add(ident)
+        ident = unique_id(semantic, f"widget_{len(nodes)}", used)
         cls = str(value(item, "className", type(item).__name__))
         content = {}
         # No model(), property(), meta-property enumeration, or password content.
         echo = value(item, "echoMode", 0)
-        for key in ("text", "title", "windowTitle", "placeholderText", "currentText", "value", "checked", "isChecked", "toPlainText"):
+        for key in ("text", "title", "windowTitle", "placeholderText", "currentText", "value", "checked", "isChecked", "checkable", "isCheckable", "toPlainText", "minimum", "maximum", "prefix", "suffix", "decimals"):
             if key in ("text", "toPlainText") and echo != 0:
                 continue
             result = value(item, key)
@@ -93,10 +129,28 @@ def snapshot(widget: Any, title: str, filename: str, max_widgets: int = 2000) ->
                     rect=[x, y, width, height], content=content, actions=[])
         for action in native_list(item, "actions"):
             details = {key: value(action, key, "") for key in ("objectName", "statusTip", "text")}
+            action_semantic = str(details["statusTip"] or details["objectName"])
+            details["id"] = unique_id(action_semantic, f"action_{len(used)}", used)
+            details["content"] = {key: value(action, getter, default) for key, getter, default in (
+                ("text", "text", ""), ("visible", "isVisible", True), ("enabled", "isEnabled", True),
+                ("checkable", "isCheckable", False), ("checked", "isChecked", False), ("separator", "isSeparator", False))}
+            details["rect"] = None
+            if cls in ("QMenu", "QMenuBar") and details["content"]["visible"]:
+                method = getattr(item, "actionGeometry", None)
+                try:
+                    rect = method(action) if callable(method) else None
+                except (TypeError, RuntimeError):
+                    rect = None
+                if rect is not None:
+                    ax, ay, aw, ah = [int(value(rect, key, 0)) for key in ("x", "y", "width", "height")]
+                    rw, rh = int(value(widget, "width", 0)), int(value(widget, "height", 0))
+                    if aw > 0 and ah > 0 and ax >= 0 and ay >= 0 and ax + aw <= width and ay + ah <= height and x + ax >= 0 and y + ay >= 0 and x + ax + aw <= rw and y + ay + ah <= rh:
+                        details["rect"] = [x + ax, y + ay, aw, ah]
+                        rects[details["id"]] = details["rect"]
+                        texts[details["id"]] = details["text"]
             node["actions"].append(details)
-            # Only a directly observed owning widget proves local ownership.
             if value(action, "parent") is item:
-                local_actions.append((str(details["statusTip"] or details["objectName"]), ident))
+                local_actions.append((action_semantic, ident))
         nodes.append(node)
         if semantic:
             rects[ident] = node["rect"]
@@ -108,8 +162,10 @@ def snapshot(widget: Any, title: str, filename: str, max_widgets: int = 2000) ->
         pending.extend((child, ident, x, y) for child in reversed(native_list(item, "children")))
     root = nodes[0] if nodes else {"id": "root", "class": type(widget).__name__}
     outside = {}
+    measured = {node["semantic"] for node in nodes if node["semantic"]}
+    measured.update(str(action["statusTip"] or action["objectName"]) for node in nodes for action in node["actions"] if action["rect"] is not None)
     for action_id, offering in local_actions:
-        if action_id and action_id not in rects:
+        if action_id and action_id not in measured:
             outside.setdefault(action_id, []).append(offering)
     return {"manifest": {"tool": "grablab", "version": 2, "build": "", "units": "rects and size are logical points in the image own frame, origin top-left; use pixels / size for pixel mapping"},
             "shot": 1, "target": root["id"], "root": root["id"], "scope": "form", "class": root["class"],
@@ -119,7 +175,7 @@ def snapshot(widget: Any, title: str, filename: str, max_widgets: int = 2000) ->
             "opened_from": "", "popup_parent": "", "opener": {}, "context": {"window": value(widget, "windowTitle", ""), "checked": checked, "outside": outside, "reaches": {}},
             "taken": time.strftime("%Y-%m-%d %H:%M:%S"), "rects": rects, "texts": texts, "x_ray": False, "nodes": [],
             "extensions": {"schema": "grablab.capture/1", "widgets": nodes, "truncated": bool(pending),
-                           "limits": ["Visible runtime geometry and allowlisted content only; no layout reconstruction, signals, model data, icons or custom painting", "Editable content may contain document data; password text omitted", "Outside includes directly owned named actions; reaches and opener unknown; local action associations only", "Custom widget classes require their original plugins"]}}
+                           "limits": ["Visible runtime geometry and allowlisted content only; no layout reconstruction, signals, model data, icons or custom painting", "Editable content may contain document data; password text omitted", "Outside includes directly owned named actions; reaches and opener unknown; local action associations only", "Custom widget classes require their original plugins", "Designer properties use standard-control writable allowlists; read-only/unknown content stays in JSON; submenu structure and action connections are not reconstructed"]}}
 
 
 def ui_xml(record: dict) -> str:
@@ -135,12 +191,20 @@ def ui_xml(record: dict) -> str:
         rect = ET.SubElement(ET.SubElement(element, "property", name="geometry"), "rect")
         for key, val in zip(("x", "y", "width", "height"), node["geometry"]):
             ET.SubElement(rect, key).text = str(val)
-        properties = {"statusTip": node["statusTip"], **node["content"]}
+        mapping = {"windowTitle": "windowTitle", **UI_CONTENT.get(node["class"], {})}
+        properties = {mapped: node["content"][key] for key, mapped in mapping.items() if key in node["content"]}
+        if "checked" in properties:
+            properties["checked"] = properties.pop("checked")
+        properties["statusTip"] = node["statusTip"]
         for key, val in properties.items():
-            key = {"isChecked": "checked", "toPlainText": "plainText"}.get(key, key)
-            prop = ET.SubElement(element, "property", name=key)
-            kind = "bool" if isinstance(val, bool) else "number" if isinstance(val, int) else "double" if isinstance(val, float) else "string"
-            ET.SubElement(prop, kind).text = str(val).lower() if isinstance(val, bool) else str(val)
+            write_property(element, key, val)
+        if node["class"] in ("QMenu", "QMenuBar"):
+            for action in node["actions"]:
+                action_element = ET.SubElement(element, "action", name=action["id"])
+                for key, val in action["content"].items():
+                    write_property(action_element, key, val)
+                write_property(action_element, "statusTip", action["statusTip"])
+                ET.SubElement(element, "addaction", name=action["id"])
     ET.SubElement(root, "resources")
     ET.SubElement(root, "connections")
     return ET.tostring(root, encoding="unicode", xml_declaration=True)

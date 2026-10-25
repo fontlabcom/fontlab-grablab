@@ -74,3 +74,28 @@ new sidecars are additive. Unsupported layouts/custom painting/icons, clipping
 versus pixel ownership and unknown remote actions are disclosed. Root must run
 ordinary artifact/native capture checks; no native requests, installation or
 push performed here. No claim of full issue131 acceptance.
+
+
+## Issue 131 Task 1 fix round 1 — 2026-10-26
+
+Read task-1-review.md and native-widget-receipt.json. P1/P2 and the measured hidden
+root child omission reproduced with tests first: 3 failed/6 passed, exit 1.
+Consulted official Qt5 QProgressBar/QAbstractSpinBox read-only text, QWidget
+isVisibleTo and QMenu actionGeometry documentation. Fixed writable per-control
+Designer mapping, checked-state deduplication/setter order, relative visibility,
+and measured menu/menu-bar actions plus QAction/addaction serialization. Numeric
+range/precision setters precede value setters; read-only and unsupported data
+remain JSON-only. During the implementation a duplicated nodes.append yielded
+two failed assertions; removed it and reran before claiming GREEN.
+
+Exact final command (through rtk proxy, cwd isolated checkout):
+`PYTHONPATH=src /Users/adam/Developer/vcs3/github.fontlabcom/fontlab-scripting/fontlab-grablab/.venv/bin/python -m pytest -q` — 21 passed, exit 0.
+Three generated UI controls invoke `/opt/homebrew/opt/qt@5/bin/uic` with exit 0:
+progress/spin/abstract-spin/checkbox, QMenu, QMenuBar. Tests inspect generated
+setters and order as well as XML geometry/visibility/content/classification.
+`git diff --check` — exit 0. No FontLab/native requests, installs or descendants.
+
+Wait, but: uic generation proves usable setter output, not native loading/render
+equivalence. Root must rebuild ordinary artifacts and rerun owned captures to
+verify actual relative visibility and menu action geometry in PythonQt. Submenu
+structure, custom widgets and signal wiring retain their disclosed limits.

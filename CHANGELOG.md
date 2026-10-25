@@ -61,3 +61,13 @@ No open tasks. Workspace-level work is tracked in the parent TODO.md.
   runtime widget geometry/content in JSON and Qt Designer XML without model walks.
 - Stage bundles and publish exclusively with rollback; retain preference restoration.
 - Make the former SVG font/stroke substitutions explicit `restyle=True` opt-in.
+
+
+### Issue 131 Task 1 review fixes
+
+- Restrict Designer properties to writable standard-control allowlists; retain
+  read-only progress/spin display text in JSON and deduplicate checked state.
+- Include rendered descendants of hidden owned roots via relative visibility.
+- Measure visible contained menu/menu-bar action geometry/text; classify hidden,
+  empty and clipped owned actions outside, and emit supported action/addaction UI.
+- Validate generated standard-control and menu XML with actual Qt5 uic.
