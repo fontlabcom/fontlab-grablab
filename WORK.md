@@ -371,3 +371,29 @@ limitation, not a claim of correct mask recoloring.
 ## Issue 131 exact premultiplied icon matching
 
 Actual Qt PNG round-trip changes RGB60/alpha16 into RGB64/alpha16; both are RGBa4/alpha16. Pillow documented RGBa conversion now fingerprints exact rendered8-bit pixels and dimensions instead of straight PNG channels. No fuzzy/alpha-only matching or new dependency. Index schema2 and pixel_format RGBa8 explicitly reject stale indexes. Tests first reproduced the mismatch/stale-index acceptance; ambiguity after quantization remains unresolved. Actual Glyph capture inlining rises14to20; Font window15to20, retaining95/126 images respectively. Those include previews, missing assets and ambiguity; no all-vector claim. Official Pillow modes documentation consulted. Root implemented after child executor lost all filesystem tools (OS24); no child changes overlapped.
+
+## Issue 131 final acceptance — 2026-10-26
+
+Source90c1842 passed independent Task11 review; Task12 processing-order repair
+passed independent review. Root verified ordinary wheel/sdist runtime bytes, with
+capture modules unchanged from the native-qualified build. Genuine version:
+0.2.1.dev18+g90c1842e6. No pretend version or live package installation.
+
+Exact commands run through rtk proxy (exit0 unless noted):
+- sh .metaswarm/quality.sh coverage /Volumes/Falstaff4T/fontlab-scripting-data/issue131/grablab fontlab-grablab: 122 tests; changed-module combined coverage grab85.09%, snapshot94.93%, svg95.68%; no exclusions added.
+- uv pip install --python /Volumes/Falstaff4T/fontlab-scripting-data/issue131/svg-env/bin/python --no-deps --target /Volumes/Falstaff4T/fontlab-scripting-data/issue131/installed-90c1842 /Volumes/Falstaff4T/fontlab-scripting-data/issue131/dist-90c1842/fontlab_grablab-0.2.1.dev18+g90c1842e6-py3-none-any.whl
+- env PYTHONPATH=/Volumes/Falstaff4T/fontlab-scripting-data/issue131/installed-90c1842 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 /Volumes/Falstaff4T/fontlab-scripting-data/issue131/svg-env/bin/python -m pytest -c /dev/null -p no:cacheprovider -q /Volumes/Falstaff4T/fontlab-scripting-data/issue131/grablab/tests: 122passed.
+- bash process.sh captures/capture-20261026-013447-lln61e69/capture-receipt.json --deduplicate
+- bash process.sh captures/capture-20261026-013246-9gufcbhl/capture-receipt.json --deduplicate
+- bash test.sh (icon root):46passed.
+- uv run --no-project --with playwright --with pillow python verification/issue-131/screenshots-browser-check.py:6actual variants, no page errors/duplicate IDs/broken references; system-ui, zero colored pixels in mono/wireframe. Initial direct svg-env run failed before browser launch (missing playwright); ephemeral runner above succeeded.
+
+Final processed runs: processed-20261026-020536-2nl8xhzw (Glyph) and
+processed-20261026-020537-dyyxqilp (Font). Each inlines20image instances.
+Glyph retains95rasters, Font126: previews, unmatched and ambiguous sources remain
+intact. Direct final image inspection confirms readable surfaces/opaque footer.
+Evidence: workspace verification/issue-131/requirements-audit.md and external
+issue131/artifact-90c1842.json, screenshots-browser-90c1842/report.json.
+Historical failed attempts remain retained. Font creation/export is waived;
+the icon font was not used. Whole-desktop, all configurations and complete
+custom-widget reconstruction are not claimed.

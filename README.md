@@ -36,31 +36,21 @@ explicitly opts into the old font/stroke substitutions; raw capture preserves th
 ```sh
 # Install the sibling dependency locally (arm64 Python 3.11, as in FontLab):
 uv venv --python cpython-3.11-macos-aarch64-none
-uv pip install -e ../fontlab-fontlabapp -e '.[test]'
+uv pip install -e ../fontlab-fontlabapp -e '.[test,svg]'
 ./test.sh
 uv build
 ```
 
-`./test.sh` runs with `--no-sync`, so create this environment first.
+`./test.sh` uses `--no-sync`; create the environment first.
+The issue 131 suite has 122 tests. Ordinary-wheel capture in FontLab 9.0.9794
+verified actual Font/Glyph windows, canvas and four panels, paired metadata, DPR2
+and preference restoration. Four public grabCanvas variants also passed native
+PNG/SVG/JSON checks; six actual Designer files passed Qt5 uic. An owned CC0 sample
+was closed afterward with its source unchanged. Whole-desktop capture and every
+panel/window configuration remain separate integration checks.
 
-Seven regression tests verify stale-file failure, many collisions, submenu
-aggregation, preference restoration, alternative-view failure and SVG metadata.
-Installed native smoke verifies a hidden QWidget PNG/SVG capture, actual
-ApplicationUI, metadata, and restoration after a deliberately failed capture.
-Test files/windows are removed; open fonts and persistent user preferences are
-untouched. Whole-desktop capture, open-font canvas export and every panel/window
-configuration remain later integration checks.
-
-Both source files and BSD-3-Clause licenses are retained and tracked in
-MIGRATION.json. Versions derive from Git tags through hatch-vcs. Source originals
-remain preserved until migration acceptance. See WORK.md for evidence.
-
-## Status
-
-Issue 101 migration is complete and released as verified v0.2.0 (RELEASE.md): both
-original sources and licences migrated with hashes, wheel/sdist installs, native
-PNG/SVG capture of hidden widgets and FontLab windows, and rendering-preference
-restoration verified in FontLab. All three v0.2.0 project iterations passed.
+Migration provenance/licences are in MIGRATION.json; verification is in WORK.md.
+Versions derive from Git tags through hatch-vcs.
 
 ## Issue 131 capture bundles
 
@@ -100,7 +90,7 @@ rectangles populate `context.outside`; remote `reaches`, opener, build, theme an
 background stay explicitly unknown where unmeasured. Truncation and limitations
 are disclosed in JSON and the UI comment. Native SVG/PDF primitives retain their
 existing interfaces; high-level non-widget bundles are described below.
-Native artifact and runtime acceptance of this new bundle is pending.
+Issue 131 ordinary-artifact and owned native acceptance is recorded in WORK.md.
 
 Designer content uses writable properties for known standard controls; read-only
 progress/spin display text and unknown-class content remain in JSON. Numeric
@@ -132,7 +122,8 @@ These non-widget captures have empty semantic records and no fabricated `.ui`.
 They reuse exclusive staged publication, collision checks and failure rollback;
 rendering preferences and alternative/dark toggles restore on failure. Return
 lists still contain only image paths (plus the existing optional PDF). Source
-tests do not qualify native screen/canvas behavior or faithful Qt rendering.
+tests alone do not qualify native behavior. The four canvas variants were also
+checked in FontLab 9.0.9794; whole-desktop capture remains unqualified.
 
 ## Host-free SVG processing
 
@@ -184,14 +175,15 @@ positions, input paint order, source viewBox sizes and collision-free local IDs.
 `restyle` changes stroke/fill/width/background/font (`system-ui` by default),
 including inline CSS. Documents containing `<mask>` are refused before any
 mutation, including font-only changes: inherited paint and text geometry affect
-mask opacity. Wireframe keeps readable monochrome text and outlines.
-`monochrome=True` and wireframe also grayscale retained rasters in an outer group,
-preserving image bytes/geometry/effects. `filtered_images` discloses their count;
-the standard CSS grayscale filter shorthand needs a supporting SVG renderer.
-Retained rasters combined with author `<style>` elements are refused before any
-mutation in monochrome/wireframe mode: adding a wrapper can change selector
-matches and effective geometry/effects. Presentation/inline image effects remain
-supported; ordinary restyling and stylesheet-only vector input remain supported.
+mask opacity. Wireframe keeps readable monochrome text and outlines on opaque surfaces.
+Monochrome applies a root grayscale filter, preserving luminance and existing
+filter effects. It refuses author stylesheets, important root filters and CSS-wide
+root-filter values before mutation. Wireframe alone wraps retained rasters with
+grayscale groups; combining rasters with author stylesheets is refused because
+wrapping can change selectors. Stylesheet-only vector inputs remain supported
+for wireframe and ordinary restyling. Image bytes/geometry remain intact;
+filtered_images reports the affected raster count. CSS grayscale needs a
+supporting SVG renderer.
 Ordinary color changes preserve effective `none` from presentation attributes,
 class/ID CSS and inline styles using specificity, source order, inheritance and
 `!important`. Conditional stylesheet rules and unresolved contextual paints fail

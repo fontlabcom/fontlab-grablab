@@ -167,3 +167,8 @@ No open tasks. Workspace-level work is tracked in the parent TODO.md.
 ## Issue 131 premultiplied PNG matching
 
 - Match exact8-bit premultiplied pixels across Qt PNG round-trips, preserving ambiguity and visible channel/alpha differences. Rebuild schema1indexes as schema2.
+
+### Issue 131 verified delivery — 2026-10-26
+
+- Qualify paired native window/panel/canvas snapshots and actual composed vector, mono and wireframe screenshots; preserve ambiguous raster content.
+- Verify ordinary artifacts, 122 tests and changed-module coverage above80%; record the owner font-work waiver and remaining native integration limits.
