@@ -568,9 +568,10 @@ def restyle(
 
     Resolve author CSS cascade/inheritance first to preserve effective no-paint.
     Mask-bearing documents and unsupported/contextual CSS fail before edits. Wireframe explicitly changes
-    paints to monochrome outlines and text; stylesheet rules remain in place.
-    Monochrome/wireframe wrap retained images with the standard grayscale filter
-    shorthand, preserving their bytes, geometry and existing effect attributes.
+    paints to dark outlines/text with opaque light surfaces, retaining no-paint.
+    Monochrome filters the full drawing, preserving luminance hierarchy and
+    existing filters. Wireframe wraps retained images with grayscale filtering.
+    Resource definitions retain their geometry and paint.
     """
     if stroke_width is not None and (
         not math.isfinite(stroke_width) or stroke_width < 0
@@ -580,18 +581,30 @@ def restyle(
     if any(node.tag == f"{{{SVG}}}mask" for node in root.iter()):
         raise ValueError("Restyling SVG masks is unsupported; preserve mask painting")
     if wireframe:
-        stroke, fill = stroke or "#333333", "none"
+        stroke, fill = stroke or "#333333", background or "white"
         stroke_width = 1 if stroke_width is None else stroke_width
     if (monochrome or wireframe) and any(
         node.tag == f"{{{SVG}}}image" for node in root.iter()
     ) and any(node.tag == f"{{{SVG}}}style" for node in root.iter()):
         # New groups change selector matches on images, wrappers and siblings.
         raise ValueError("Unsupported stylesheet with retained raster wrapping")
+    # Root filtering leaves the tree and all selector relationships intact.
+    # Author root filter rules need a real cascade/effect resolver; refuse them.
+    if monochrome and any(node.tag == f"{{{SVG}}}style" for node in root.iter()):
+        raise ValueError("Unsupported stylesheet with full-drawing monochrome")
+    root_css = dict(part.split(":", 1) for part in root.get("style", "").split(";") if ":" in part)
+    if monochrome and any(key.strip() == "filter" and "!important" in value for key, value in root_css.items()):
+        raise ValueError("Unsupported important root filter for monochrome")
     paints = _effective_paints(root)
+    resources = {
+        child for node in root.iter()
+        if node.tag.rsplit("}", 1)[-1] in ("defs", "clipPath", "pattern", "filter", "marker")
+        for child in node.iter()
+    }
     stats = {"styled": 0, "filtered_images": 0}
     for node in root.iter():
         kind = node.tag.rsplit("}", 1)[-1]
-        if kind not in (
+        if node in resources or kind not in (
             "svg",
             "g",
             "path",
@@ -617,6 +630,8 @@ def restyle(
             ("fill", fill),
             ("stroke-width", stroke_width),
         ):
+            if wireframe and kind in ("svg", "g"):
+                continue
             if value is not None and (
                 key == "stroke-width"
                 or (wireframe and key == "stroke")
@@ -629,7 +644,15 @@ def restyle(
         css.update(updates)
         node.set("style", ";".join(f"{key}:{value}" for key, value in css.items()))
         stats["styled"] += 1
-    if monochrome or wireframe:
+    if monochrome:
+        css = dict(part.split(":", 1) for part in root.get("style", "").split(";") if ":" in part)
+        effect = css.get("filter", root.get("filter", "")).strip()
+        if not effect.endswith("grayscale(1)"):
+            effect = f"{effect} grayscale(1)" if effect and effect != "none" else "grayscale(1)"
+        css["filter"] = effect
+        root.set("style", ";".join(f"{key}:{value}" for key, value in css.items()))
+        stats["filtered_images"] = sum(node.tag == f"{{{SVG}}}image" for node in root.iter())
+    if wireframe and not monochrome:
         for parent in list(root.iter()):
             for position, image in enumerate(list(parent)):
                 if image.tag != f"{{{SVG}}}image":

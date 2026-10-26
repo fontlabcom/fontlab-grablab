@@ -169,7 +169,7 @@ def test_restyle_changes_inline_css_and_preserves_none():
     assert root[2].get("fill") == "none"
     assert root[3].get("font-family") == "system-ui"
     svg.restyle(root, wireframe=True)
-    assert root[1].get("fill") == "none"
+    assert root[1].get("fill") == "white"
 
 
 def test_write_never_overwrites_raw_or_existing_output(tmp_path):
@@ -270,7 +270,7 @@ def test_dedup_retains_strokes_ids_nonadjacent_and_inherited_opacity():
 def test_wireframe_text_visible_and_all_geometry_outlined():
     root = tree('<path stroke="none" fill="red"/><text fill="red">Label</text>')
     svg.restyle(root, wireframe=True, font="Example")
-    assert root[0].get("stroke") == "#333333" and root[0].get("fill") == "none"
+    assert root[0].get("stroke") == "#333333" and root[0].get("fill") == "white"
     assert root[1].get("fill") == "#333333" and root[1].get("stroke") == "none"
     assert root[1].get("font-family") == "Example"
 
@@ -481,6 +481,10 @@ def test_monochrome_retained_png_keeps_pixels_geometry_and_effects(mode):
     original = dict(image.attrib)
     stats = svg.restyle(root, **{mode: True})
     assert stats["filtered_images"] == 1
+    if mode == "monochrome":
+        assert root[2] is image and image.attrib == original
+        assert "grayscale(1)" in root.get("style", "")
+        return
     wrapper = root[2]
     assert wrapper.tag == "{http://www.w3.org/2000/svg}g" and wrapper[0] is image
     assert image.attrib == original
@@ -494,9 +498,12 @@ def test_monochrome_is_explicit_and_repeated_styling_does_not_nest_wrappers():
     image = root[0]
     assert svg.restyle(root)["filtered_images"] == 0 and root[0] is image
     assert svg.restyle(root, monochrome=True)["filtered_images"] == 1
-    wrapper = root[0]
+    assert root[0] is image
     assert svg.restyle(root, wireframe=True)["filtered_images"] == 1
-    assert root[0] is wrapper and wrapper[0] is image and len(wrapper) == 1
+    wrapper = root[0]
+    assert wrapper[0] is image and len(wrapper) == 1
+    assert svg.restyle(root, wireframe=True)["filtered_images"] == 1
+    assert root[0] is wrapper and wrapper[0] is image
 
 
 def test_composed_monochrome_preserves_existing_filter_and_clip_references(tmp_path):
@@ -511,7 +518,7 @@ def test_composed_monochrome_preserves_existing_filter_and_clip_references(tmp_p
         image = panel.find(".//{http://www.w3.org/2000/svg}image")
         assert image.get("filter") == f"url(#panel-{number}-effect)"
         assert image.get("clip-path") == f"url(#panel-{number}-clip)"
-        assert "grayscale(1)" in panel[1].get("style", "")
+        assert "grayscale(1)" in panel.get("style", "")
 
 
 @pytest.mark.parametrize("style", [
@@ -566,3 +573,40 @@ def test_restyle_refuses_masks_before_mutating_inherited_paint_or_font(options):
     with pytest.raises(ValueError, match="Restyling SVG masks is unsupported"):
         svg.restyle(root, background="yellow", **options)
     assert ET.tostring(root) == before, "Refusal must preserve the whole document"
+
+
+def test_monochrome_keeps_contrast_paints_and_filter_chain():
+    root = tree('<rect fill="white"/><text fill="#222">Text</text>')
+    root.set("filter", "url(#effect)")
+    svg.restyle(root, monochrome=True)
+    assert root[0].get("fill") == "white"
+    assert root[1].get("fill") == "#222"
+    assert "url(#effect) grayscale(1)" in root.get("style")
+    assert root[1].get("font-family") == "system-ui"
+
+
+def test_wireframe_preserves_occlusion_none_and_resource_geometry():
+    root = tree('<defs><pattern id="p"><path fill="red" d="M0 0h2"/></pattern></defs>'
+                '<path id="row" fill="red"/><rect id="footer" fill="#eee"/>'
+                '<path fill="none"/><text>Footer</text>')
+    resource = ET.tostring(root[0])
+    svg.restyle(root, wireframe=True, background="white")
+    assert ET.tostring(root[1]) == resource
+    assert [node.get("id") for node in root[2:4]] == ["row", "footer"]
+    assert root[2].get("fill") == root[3].get("fill") == "white"
+    assert root[4].get("fill") == "none"
+    assert root[5].get("fill") == "#333333"
+
+
+def test_monochrome_repeated_filter_and_important_filter_refusal():
+    root = tree('<rect fill="red"/>')
+    root.set("style", "filter:blur(2px)")
+    svg.restyle(root, monochrome=True)
+    svg.restyle(root, monochrome=True)
+    assert root.get("style").count("grayscale(1)") == 1
+    assert "blur(2px) grayscale(1)" in root.get("style")
+    root.set("style", "filter:blur(2px)!important")
+    before = ET.tostring(root)
+    with pytest.raises(ValueError, match="important root filter"):
+        svg.restyle(root, monochrome=True)
+    assert ET.tostring(root) == before

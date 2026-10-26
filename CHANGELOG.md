@@ -4,6 +4,35 @@ this_file: CHANGELOG.md
 
 # Changelog
 
+## Issue 131 Task 10 rendered acceptance correction — 2026-10-26
+
+Actual Chrome captures exposed two presentation failures. Monochrome now applies
+standard grayscale to the complete SVG drawing, preserving the light/dark paint
+hierarchy, geometry and existing root/descendant filter effects. The actual
+process_captures.py caller no longer overrides every stroke/fill with dark grey.
+Wireframe keeps originally painted surfaces white (or the requested background),
+retains none paints and sibling order, and uses readable dark text/outlines.
+Definition/clip/pattern/filter/marker descendants remain unchanged; container paint
+is not overridden so resource inheritance remains intact. Retained raster
+wireframe wrappers and their existing effects remain supported and idempotent.
+Author stylesheets in monochrome and important root filters are refused before
+mutation; masks retain their existing refusal. No new dependency or color parser.
+
+Reviewed W3C Filter Effects 1 sections5,6,13 for full-drawing filtering and ordered
+filter function composition: https://www.w3.org/TR/filter-effects-1/#FilterProperty
+Two new contrast/occlusion tests failed before implementation. Fresh checks:
+
+```
+rtk proxy env PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 /Volumes/Falstaff4T/fontlab-scripting-data/issue131/svg-env/bin/python -m pytest -q
+rtk proxy uvx ruff check src/grablab/svg.py tests/test_svg.py
+rtk proxy git diff --check
+```
+
+All107tests pass; Ruff and diff checks exit0. Wait, but: this proves source
+regressions, not the root's separately required actual rendered acceptance or
+ordinary wheel qualification. No native call, live install, push or font work.
+
+
 ## 2026-10-26 — issue 131 final SVG review fixes
 
 - Rewrite local URL references in one dictionary-backed pass, avoiding per-ID
