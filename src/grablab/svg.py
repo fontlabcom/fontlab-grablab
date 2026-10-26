@@ -16,13 +16,16 @@ import hashlib
 import io
 import json
 import math
+import os
 import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from urllib.parse import quote, unquote, urlsplit, urlunsplit
 
 SVG = "http://www.w3.org/2000/svg"
 XLINK = "{http://www.w3.org/1999/xlink}href"
 INDEX_SCHEMA = "grablab.raster-index/2"
+ICON_MODES = ("base64", "png-url", "svg-url", "inline-svg")
 ET.register_namespace("", SVG)
 ET.register_namespace("xlink", "http://www.w3.org/1999/xlink")
 
@@ -79,8 +82,14 @@ def build_raster_index(
         vector = (manifest.parent / files["svg"]["path"]).resolve()
         if not vector.is_file():
             raise FileNotFoundError(vector)
+        png_files = sorted(key for key in files if key.startswith("png"))
+        export_png = (
+            str((manifest.parent / files[png_files[0]]["path"]).resolve())
+            if png_files
+            else None
+        )
         names.setdefault(asset.get("asset_name", asset["basename"]), []).append(
-            {"asset": asset["basename"], "svg": str(vector)}
+            {"asset": asset["basename"], "svg": str(vector), "export_png": export_png}
         )
         for kind, entry in files.items():
             if not kind.startswith("png"):
@@ -260,6 +269,93 @@ def inline_images(root: ET.Element, mapping: dict) -> dict:
             parent.remove(node)
             parent.insert(position, group)
             stats["replaced"] += 1
+    return stats
+
+
+def _relative_url(target: Path, output: str | Path) -> str:
+    return quote(
+        Path(
+            os.path.relpath(target.resolve(), Path(output).resolve().parent)
+        ).as_posix(),
+        safe="/",
+    )
+
+
+def process_images(
+    root: ET.Element,
+    mapping: dict | None = None,
+    *,
+    icon_mode: str = "inline-svg",
+    output: str | Path | None = None,
+) -> dict:
+    """Keep, link or inline mapped icons; URL modes require the output SVG path.
+
+    PNG links prefer a pixel-exact exported candidate (sorted path tie-break),
+    then the manifest's standard PNG for source-name associations. No copying
+    or renaming occurs. Receipts describe selection, not browser load success.
+    """
+    if icon_mode not in ICON_MODES:
+        raise ValueError(f"Unknown icon mode: {icon_mode}")
+    if icon_mode.endswith("-url") and output is None:
+        raise ValueError("URL icon modes require an output SVG path")
+    stats = {
+        "mode": icon_mode,
+        "linked": 0,
+        "inlined": 0,
+        "retained": 0,
+        "reasons": {},
+        "targets": [],
+    }
+    usable = {}
+    for node in root.iter(f"{{{SVG}}}image"):
+        href = node.get("href", node.get(XLINK, ""))
+        row = (mapping or {}).get(href, {})
+        candidates = row.get("candidates", [])
+        reason = "base64" if icon_mode == "base64" else row.get("status", "unmapped")
+        if reason == "matched" and _status(candidates) != "matched":
+            reason = "ambiguous"
+        target = None
+        if reason == "matched":
+            paths = {candidate["svg"] for candidate in candidates}
+            selection = "unique-vector"
+            if icon_mode == "png-url":
+                paths = {
+                    c["png"]
+                    for c in candidates
+                    if c.get("match") == "pixel-exact" and c.get("png")
+                }
+                selection = "pixel-exact-export"
+                if not paths:
+                    paths = {c["export_png"] for c in candidates if c.get("export_png")}
+                    selection = "source-name-export"
+                    if len(paths) > 1:
+                        reason = "ambiguous-target"
+            if not paths:
+                reason = "missing-target"
+            elif reason == "matched":
+                target = Path(min(paths))
+                try:
+                    if icon_mode == "png-url":
+                        pixel_key(target.read_bytes())
+                    else:
+                        read_svg(target)
+                except (OSError, ValueError, ET.ParseError):
+                    reason = "invalid-target"
+        if reason != "matched":
+            stats["retained"] += 1
+            stats["reasons"][reason] = stats["reasons"].get(reason, 0) + 1
+            continue
+        entry = {"path": str(target.resolve()), "selection": selection}
+        if icon_mode == "inline-svg":
+            usable[href] = row
+        else:
+            entry["url"] = _relative_url(target, output)
+            node.set("href", entry["url"])
+            node.attrib.pop(XLINK, None)
+            stats["linked"] += 1
+        stats["targets"].append(entry)
+    if icon_mode == "inline-svg":
+        stats["inlined"] = inline_images(root, usable)["replaced"]
     return stats
 
 
@@ -530,9 +626,13 @@ def deduplicate_paths(root: ET.Element) -> dict:
 
 
 def compose(
-    panels: list[tuple[str | Path, float, float]], *, width: float, height: float
+    panels: list[tuple[str | Path, float, float]],
+    *,
+    width: float,
+    height: float,
+    output: str | Path | None = None,
 ) -> ET.Element:
-    """Assemble SVGs at explicit logical positions in input paint order."""
+    """Assemble in paint order; pass output to rebase relative image URLs."""
     if not all(math.isfinite(value) and value > 0 for value in (width, height)):
         raise ValueError("Composition dimensions must be positive and finite")
     root = ET.Element(
@@ -545,6 +645,30 @@ def compose(
         if not all(math.isfinite(value) for value in (x, y)):
             raise ValueError("Panel positions must be finite")
         panel = read_svg(path)
+        if output is not None:
+            for node in panel.iter(f"{{{SVG}}}image"):
+                href = node.get("href", node.get(XLINK, ""))
+                parts = urlsplit(href)
+                if (
+                    parts.path
+                    and not parts.scheme
+                    and not parts.netloc
+                    and not parts.path.startswith("/")
+                ):
+                    target = Path(path).resolve().parent / unquote(parts.path)
+                    node.set(
+                        "href",
+                        urlunsplit(
+                            (
+                                "",
+                                "",
+                                _relative_url(target, output),
+                                parts.query,
+                                parts.fragment,
+                            )
+                        ),
+                    )
+                    node.attrib.pop(XLINK, None)
         _namespace(panel, f"panel-{number}-")
         if panel.get("viewBox"):
             _, _, panel_width, panel_height = map(

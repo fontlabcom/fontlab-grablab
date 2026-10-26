@@ -139,7 +139,7 @@ from grablab import svg
 root = svg.read_svg("panel.svg")
 index = svg.build_raster_index("assets-manifest.json", source_dirs=["source-pngs"])
 mapping = svg.map_images(root, index)  # JSON-serializable URI -> candidates/status
-stats = {"inline": svg.inline_images(root, mapping)}
+stats = {"icons": svg.process_images(root, mapping)}
 stats["widgets"] = svg.tag_widgets(root, json.loads(Path("panel.json").read_text()))
 svg.write_svg(root, "panel-processed.svg")  # refuses any existing output
 svg.restyle(root, wireframe=True, background="white")
@@ -196,3 +196,34 @@ paths without IDs, strokes or inherited opacity/effects. Repeated antialiased
 edges can differ; compare processed renders or leave cleanup disabled when exact
 pixels matter. Raw inputs remain separate. Host-free tests and asset indexing do
 not establish native screenshot fidelity.
+
+## Icon representation modes
+
+`process_images(root, mapping=None, icon_mode="inline-svg", output=None)`
+returns mode, linked/inlined/retained counts, retained reasons and resolved targets.
+The existing `inline_images` API is unchanged. Modes:
+
+- `base64`: retain every image without indexing assets; mapping is optional.
+- `png-url`: link a matching exported PNG, preferring exact pixels; ties use
+  sorted paths. Source-name matches use the manifest's standard PNG (then the
+  first sorted PNG variant). This is provenance, not visual equivalence.
+- `svg-url`: link the unique matched SVG without inserting its paths.
+- `inline-svg` (default): retain the existing namespaced vector substitution.
+
+URL modes require `output`, the destination SVG filename, and emit escaped
+relative URLs to the original named assets. They do not copy/rename resources.
+Keep the referenced asset tree available when moving or serving the result.
+Both href forms are read with SVG2 href precedence; a replaced image has only
+href. Geometry, transforms, clipping, opacity and aspect ratio stay intact.
+Missing/invalid targets and ambiguous/unknown images are retained with reasons.
+Base64 mode preserves even malformed image URIs without decoding them.
+Pass `output` to `compose` as well when its directory differs from the panels;
+it rebases relative image URLs, preserving queries/fragments and remote URLs.
+These helpers target trusted Qt captures without XML base overrides.
+
+Linked SVG interiors cannot inherit screenshot paint or font changes. Mono
+filters the rendered image; wireframe keeps a grayscale image rather than
+converting its paths. Open linked screenshots directly or use HTML iframe/object.
+HTML img embedding restricts external resources, so an SVG load event alone
+does not prove its icons loaded. See the [SVG2 processing modes](https://www.w3.org/TR/SVG2/conform.html#secure-static-mode)
+and [image element](https://www.w3.org/TR/SVG2/embedded.html#ImageElement).

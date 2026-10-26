@@ -4,6 +4,22 @@ this_file: WORK.md
 
 # Migration evidence
 
+## Icon modes source candidate — 2026-10-26
+
+Implemented host-free process_images and optional image-link rebasing in compose.
+Reused existing exact matcher/inline API and stdlib URL handling; no dependency
+added. Baseline122tests pass; ten new controls failed before implementation.
+Current138tests pass. Real unchanged coverage gate: svg95.99%, exit0, evidence
+.metaswarm/runs/fontlab-grablab.iIaGWx in workspace.
+Actual CLI tests correctly fail against the old pinned wheel (missing API);
+new ordinary artifacts and browser acceptance remain pending.
+
+Commands through rtk proxy in isolated worktree: external svg-env python
+-m pytest -q (exit0); workspace sh .metaswarm/quality.sh coverage <worktree>
+fontlab-grablab (exit0). Official W3C SVG2 image/linking/conformance docs reviewed.
+Wait, but: source tests cannot qualify actual browser resource loading.
+
+
 ## Issue 131 Task 10 review fix round1 — 2026-10-26
 
 Refuse CSS-wide root filter keywords before monochrome mutation, preventing

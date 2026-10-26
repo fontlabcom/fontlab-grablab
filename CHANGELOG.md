@@ -2,6 +2,12 @@
 this_file: CHANGELOG.md
 ---
 
+## Unreleased — icon representation modes
+
+- Add host-free base64, PNG URL, SVG URL and default inline SVG processing,
+  named asset links, outcome receipts, and output-aware composition.
+- Preserve existing inline_images callers and capture behavior.
+
 # Changelog
 
 ## Issue 131 Task 10 review fix round1 — 2026-10-26

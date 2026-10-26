@@ -690,3 +690,212 @@ def test_monochrome_css_wide_root_filter_refused_before_mutation(keyword, locati
     assert ET.tostring(root) == before, (
         "Refusal must preserve paints, fonts and geometry"
     )
+
+
+@pytest.mark.parametrize("mode", ["base64", "png-url", "svg-url", "inline-svg"])
+def test_icon_modes_preserve_geometry_and_report_outcomes(tmp_path, mode):
+    from urllib.parse import unquote
+
+    index = assets(tmp_path)
+    href = uri(png((8, 9, 10, 255)))
+    root = tree(
+        f'<image href="{href}" x="3" y="4" width="5" height="6" transform="rotate(2)" opacity="0.7" clip-path="url(#clip)" preserveAspectRatio="none"/>'
+    )
+    root[0].set(svg.XLINK, "stale.png")
+    before = ET.tostring(root)
+    output = tmp_path / "other" / "shot.svg"
+    mapping = svg.map_images(root, index)
+    result = svg.process_images(root, mapping, icon_mode=mode, output=output)
+    assert result["mode"] == mode
+    assert result["retained"] == (mode == "base64")
+    if mode == "base64":
+        assert ET.tostring(root) == before, (
+            "Retaining icons must preserve every attribute"
+        )
+    elif mode.endswith("-url"):
+        assert result["linked"] == 1 and result["inlined"] == 0
+        assert root[0].get(svg.XLINK) is None, "No stale competing href"
+        target = (output.parent / unquote(root[0].get("href"))).resolve()
+        assert target == tmp_path / ("one.png" if mode == "png-url" else "one.svg")
+        assert (
+            root[0].get("transform") == "rotate(2)" and root[0].get("opacity") == "0.7"
+        )
+        assert root[0].get("x") == "3" and root[0].get("height") == "6"
+        assert (
+            root[0].get("clip-path") == "url(#clip)"
+            and root[0].get("preserveAspectRatio") == "none"
+        )
+    else:
+        assert result["inlined"] == 1 and root[0][0].get("x") == "3"
+
+
+def test_base64_needs_no_mapping_and_invalid_mode_is_atomic():
+    root = tree('<image href="data:image/png;base64,broken"/>')
+    before = ET.tostring(root)
+    assert svg.process_images(root, icon_mode="base64")["reasons"] == {"base64": 1}
+    with pytest.raises(ValueError, match="icon mode"):
+        svg.process_images(root, icon_mode="invalid")
+    with pytest.raises(ValueError, match="output"):
+        svg.process_images(root, {}, icon_mode="png-url")
+    assert ET.tostring(root) == before
+
+
+@pytest.mark.parametrize("mode", ["png-url", "svg-url", "inline-svg"])
+def test_modes_retain_unknown_ambiguous_malformed_unsupported(tmp_path, mode):
+    index = assets(tmp_path, True)
+    root = tree(
+        "".join(
+            f'<image href="{value}"/>'
+            for value in [
+                uri(png((8, 9, 10, 255))),
+                uri(png((1, 1, 1, 255))),
+                "data:image/png;base64,broken",
+                "data:image/jpeg;base64,YQ==",
+                "existing.png",
+            ]
+        )
+    )
+    before = ET.tostring(root)
+    result = svg.process_images(
+        root, svg.map_images(root, index), icon_mode=mode, output=tmp_path / "out.svg"
+    )
+    assert result["retained"] == 5
+    assert result["reasons"] == {
+        "ambiguous": 1,
+        "unmatched": 1,
+        "invalid": 1,
+        "unsupported": 1,
+        "unmapped": 1,
+    }
+    assert ET.tostring(root) == before
+
+
+def test_link_names_escape_and_rebase_composition(tmp_path):
+    from urllib.parse import unquote
+
+    resource = tmp_path / "assets" / "Original # & ü.svg"
+    resource.parent.mkdir()
+    resource.write_text(ET.tostring(tree("<path/>"), encoding="unicode"))
+    href = uri(png((1, 2, 3, 255)))
+    root = tree('<image width="2" height="2"/>')
+    root[0].set(svg.XLINK, href)
+    mapping = {href: {"status": "matched", "candidates": [{"svg": str(resource)}]}}
+    panel = tmp_path / "panels" / "panel.svg"
+    panel.parent.mkdir()
+    result = svg.process_images(root, mapping, icon_mode="svg-url", output=panel)
+    assert "%23" in root[0].get("href") and "%20" in root[0].get("href")
+    assert result["targets"][0]["path"] == str(resource)
+    svg.write_svg(root, panel)
+    output = tmp_path / "composed.svg"
+    composed = svg.compose([(panel, 0, 0)], width=100, height=100, output=output)
+    image = next(composed.iter(f"{{{svg.SVG}}}image"))
+    assert (output.parent / unquote(image.get("href"))).resolve() == resource
+
+
+def test_default_process_matches_existing_inline_api(tmp_path):
+    import copy
+
+    index = assets(tmp_path)
+    root = tree(f'<image href="{uri(png((8, 9, 10, 255)))}"/>')
+    old = copy.deepcopy(root)
+    mapping = svg.map_images(root, index)
+    svg.inline_images(old, mapping)
+    svg.process_images(root, mapping)
+    assert ET.tostring(root) == ET.tostring(old)
+
+
+def test_png_links_use_named_manifest_export_for_source_alias(tmp_path):
+    source = tmp_path / "sources"
+    source.mkdir()
+    assets(tmp_path)
+    (source / "one@2x.png").write_bytes(png((200, 40, 10, 255)))
+    index = svg.build_raster_index(tmp_path / "manifest.json", [source])
+    root = tree(f'<image href="{uri(png((200, 40, 10, 255)))}"/>')
+    result = svg.process_images(
+        root,
+        svg.map_images(root, index),
+        icon_mode="png-url",
+        output=tmp_path / "out.svg",
+    )
+    assert root[0].get("href") == "one.png", (
+        "Use Illustrator export basename, not resource alias"
+    )
+    assert result["targets"][0]["selection"] == "source-name-export"
+
+
+@pytest.mark.parametrize("mode", ["png-url", "svg-url", "inline-svg"])
+def test_deleted_assets_remain_embedded_with_reason(tmp_path, mode):
+    index = assets(tmp_path)
+    root = tree(f'<image href="{uri(png((8, 9, 10, 255)))}"/>')
+    mapping = svg.map_images(root, index)
+    (tmp_path / ("one.png" if mode == "png-url" else "one.svg")).unlink()
+    before = ET.tostring(root)
+    result = svg.process_images(
+        root, mapping, icon_mode=mode, output=tmp_path / "out.svg"
+    )
+    assert result["reasons"] == {"invalid-target": 1}
+    assert ET.tostring(root) == before
+
+
+def test_png_multiple_exact_candidates_choose_sorted_path(tmp_path):
+    index = assets(tmp_path)
+    original = tmp_path / "one.png"
+    other = tmp_path / "z.png"
+    other.write_bytes(png((8, 9, 10, 255), 0))
+    root = tree(f'<image href="{uri(png((8, 9, 10, 255)))}"/>')
+    mapping = svg.map_images(root, index)
+    candidates = next(iter(mapping.values()))["candidates"]
+    candidates.insert(0, dict(candidates[0], png=str(other)))
+    result = svg.process_images(
+        root, mapping, icon_mode="png-url", output=tmp_path / "out.svg"
+    )
+    assert result["targets"][0]["path"] == str(original)
+    assert root[0].get("href") == "one.png"
+
+
+def test_compose_preserves_data_remote_fragment_and_query_urls(tmp_path):
+    hrefs = [
+        "data:image/png;base64,YQ==",
+        "https://example.test/a.png",
+        "//example.test/a.png",
+        "#local",
+        "/assets/icon.png",
+        "../asset.png?v=1#part",
+    ]
+    panel = tmp_path / "sub" / "panel.svg"
+    panel.parent.mkdir()
+    root = tree("".join(f'<image href="{href}"/>' for href in hrefs))
+    svg.write_svg(root, panel)
+    result = svg.compose(
+        [(panel, 0, 0)], width=100, height=100, output=tmp_path / "out.svg"
+    )
+    actual = [n.get("href") for n in result.iter(f"{{{svg.SVG}}}image")]
+    assert actual[:-1] == hrefs[:-1]
+    assert actual[-1] == "asset.png?v=1#part"
+
+
+@pytest.mark.parametrize(
+    "candidates, reason",
+    [
+        ([], "ambiguous"),
+        ([{"svg": "one.svg"}], "missing-target"),
+        (
+            [
+                {"svg": "one.svg", "export_png": "one.png"},
+                {"svg": "one.svg", "export_png": "two.png"},
+            ],
+            "ambiguous-target",
+        ),
+    ],
+)
+def test_incomplete_or_conflicting_png_mapping_is_retained(
+    tmp_path, candidates, reason
+):
+    root = tree('<image href="data:image/png;base64,abc"/>')
+    mapping = {root[0].get("href"): {"status": "matched", "candidates": candidates}}
+    before = ET.tostring(root)
+    result = svg.process_images(
+        root, mapping, icon_mode="png-url", output=tmp_path / "out.svg"
+    )
+    assert result["reasons"] == {reason: 1}
+    assert ET.tostring(root) == before
