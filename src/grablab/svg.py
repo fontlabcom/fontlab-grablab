@@ -22,6 +22,7 @@ from pathlib import Path
 
 SVG = "http://www.w3.org/2000/svg"
 XLINK = "{http://www.w3.org/1999/xlink}href"
+INDEX_SCHEMA = "grablab.raster-index/2"
 ET.register_namespace("", SVG)
 ET.register_namespace("xlink", "http://www.w3.org/1999/xlink")
 
@@ -44,19 +45,15 @@ def write_svg(root: ET.Element, output: str | Path) -> Path:
 
 
 def pixel_key(data: bytes) -> str:
-    """Hash dimensions and unpremultiplied RGBA, ignoring only invisible RGB."""
+    """Hash exact 8-bit premultiplied pixels, including dimensions and alpha."""
     from PIL import Image
 
     with Image.open(io.BytesIO(data)) as image:
         if image.format != "PNG":
             raise ValueError("Expected PNG")
-        rgba = image.convert("RGBA")
-        pixels = bytearray(rgba.tobytes())
-        for i in range(0, len(pixels), 4):
-            if pixels[i + 3] == 0:
-                pixels[i : i + 3] = b"\0\0\0"
+        rgba = image.convert("RGBA").convert("RGBa")
         return hashlib.sha256(
-            f"{rgba.width}x{rgba.height}:".encode() + pixels
+            f"RGBa8:{rgba.width}x{rgba.height}:".encode() + rgba.tobytes()
         ).hexdigest()
 
 
@@ -70,7 +67,12 @@ def build_raster_index(
     is not a pixel-equivalence claim for the exported vector. Errors fail loudly.
     """
     manifest = Path(manifest).resolve()
-    index: dict = {"schema": "grablab.raster-index/1", "pixels": {}, "sources": []}
+    index: dict = {
+        "schema": INDEX_SCHEMA,
+        "pixel_format": "RGBa8",
+        "pixels": {},
+        "sources": [],
+    }
     names: dict = {}
     for asset in json.loads(manifest.read_text())["assets"]:
         files = asset["files"]
@@ -125,6 +127,8 @@ def _status(candidates: list[dict]) -> str:
 
 def map_images(root: ET.Element, index: dict) -> dict:
     """Return a JSON-serializable data-URI mapping with all candidate paths."""
+    if index.get("schema") != INDEX_SCHEMA or index.get("pixel_format") != "RGBa8":
+        raise ValueError("Rebuild raster index for exact premultiplied RGBa8 matching")
     mapping = {}
     for node in root.iter(f"{{{SVG}}}image"):
         href = node.get("href", node.get(XLINK, ""))
@@ -138,6 +142,7 @@ def map_images(root: ET.Element, index: dict) -> dict:
                 row = {
                     "status": _status(candidates),
                     "pixel_key": key,
+                    "pixel_format": "RGBa8",
                     "candidates": candidates,
                 }
             except (ValueError, OSError, binascii.Error) as exc:
@@ -583,28 +588,41 @@ def restyle(
     if wireframe:
         stroke, fill = stroke or "#333333", background or "white"
         stroke_width = 1 if stroke_width is None else stroke_width
-    if (monochrome or wireframe) and any(
-        node.tag == f"{{{SVG}}}image" for node in root.iter()
-    ) and any(node.tag == f"{{{SVG}}}style" for node in root.iter()):
+    if (
+        (monochrome or wireframe)
+        and any(node.tag == f"{{{SVG}}}image" for node in root.iter())
+        and any(node.tag == f"{{{SVG}}}style" for node in root.iter())
+    ):
         # New groups change selector matches on images, wrappers and siblings.
         raise ValueError("Unsupported stylesheet with retained raster wrapping")
     # Root filtering leaves the tree and all selector relationships intact.
     # Author root filter rules need a real cascade/effect resolver; refuse them.
     if monochrome and any(node.tag == f"{{{SVG}}}style" for node in root.iter()):
         raise ValueError("Unsupported stylesheet with full-drawing monochrome")
-    root_css = dict(part.split(":", 1) for part in root.get("style", "").split(";") if ":" in part)
-    if monochrome and any(key.strip() == "filter" and "!important" in value for key, value in root_css.items()):
+    root_css = dict(
+        part.split(":", 1) for part in root.get("style", "").split(";") if ":" in part
+    )
+    if monochrome and any(
+        key.strip() == "filter" and "!important" in value
+        for key, value in root_css.items()
+    ):
         raise ValueError("Unsupported important root filter for monochrome")
     root_css = {key.strip(): value.strip() for key, value in root_css.items()}
     root_filter = root_css.get("filter", root.get("filter", ""))
     if monochrome and root_filter.strip().lower() in {
-        "initial", "unset", "inherit", "revert", "revert-layer"
+        "initial",
+        "unset",
+        "inherit",
+        "revert",
+        "revert-layer",
     }:
         raise ValueError("Unsupported CSS-wide root filter for monochrome")
     paints = _effective_paints(root)
     resources = {
-        child for node in root.iter()
-        if node.tag.rsplit("}", 1)[-1] in ("defs", "clipPath", "pattern", "filter", "marker")
+        child
+        for node in root.iter()
+        if node.tag.rsplit("}", 1)[-1]
+        in ("defs", "clipPath", "pattern", "filter", "marker")
         for child in node.iter()
     }
     stats = {"styled": 0, "filtered_images": 0}
@@ -651,13 +669,23 @@ def restyle(
         node.set("style", ";".join(f"{key}:{value}" for key, value in css.items()))
         stats["styled"] += 1
     if monochrome:
-        css = dict(part.split(":", 1) for part in root.get("style", "").split(";") if ":" in part)
+        css = dict(
+            part.split(":", 1)
+            for part in root.get("style", "").split(";")
+            if ":" in part
+        )
         effect = css.get("filter", root.get("filter", "")).strip()
         if not effect.endswith("grayscale(1)"):
-            effect = f"{effect} grayscale(1)" if effect and effect != "none" else "grayscale(1)"
+            effect = (
+                f"{effect} grayscale(1)"
+                if effect and effect != "none"
+                else "grayscale(1)"
+            )
         css["filter"] = effect
         root.set("style", ";".join(f"{key}:{value}" for key, value in css.items()))
-        stats["filtered_images"] = sum(node.tag == f"{{{SVG}}}image" for node in root.iter())
+        stats["filtered_images"] = sum(
+            node.tag == f"{{{SVG}}}image" for node in root.iter()
+        )
     if wireframe and not monochrome:
         for parent in list(root.iter()):
             for position, image in enumerate(list(parent)):

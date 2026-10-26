@@ -155,8 +155,11 @@ svg.restyle(root, wireframe=True, background="white")
 svg.write_svg(root, "panel-wireframe.svg")
 ```
 
-Every data URI must match known decoded PNG dimensions/RGBA exactly, apart from
-RGB beneath zero alpha. Candidates disclose `match="pixel-exact"` for exported
+Every data URI must match known decoded PNG dimensions and 8-bit premultiplied
+RGBa pixels exactly. This preserves Qt's rendered pixels despite lossy PNG
+unpremultiplication at translucent edges; it is not fuzzy or alpha-only matching.
+Index schema 2 records `pixel_format="RGBa8"`; rebuild older indexes before use.
+Candidates disclose `match="pixel-exact"` for exported
 PNG matches and `match="source-name"` for authoritative source PNGs associated by
 unique original asset name (only `@2x` is normalized). The latter preserves
 provenance but does not claim the new vector renders exactly like the old PNG.

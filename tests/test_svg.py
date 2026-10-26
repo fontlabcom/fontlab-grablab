@@ -49,12 +49,51 @@ def assets(tmp_path, duplicate=False):
     return svg.build_raster_index(manifest)
 
 
-def test_pixels_ignore_encoding_and_only_fully_transparent_rgb():
+def test_pixels_compare_exact_premultiplied_rendering():
     assert svg.pixel_key(png((1, 2, 3, 255), 0)) == svg.pixel_key(
         png((1, 2, 3, 255), 9)
     )
     assert svg.pixel_key(png((1, 2, 3, 0))) == svg.pixel_key(png((7, 8, 9, 0)))
-    assert svg.pixel_key(png((1, 2, 3, 1))) != svg.pixel_key(png((7, 8, 9, 1)))
+    assert svg.pixel_key(png((255, 0, 0, 1))) != svg.pixel_key(png((0, 0, 0, 1))), (
+        "Visible premultiplied channels remain distinct"
+    )
+    assert svg.pixel_key(png((60, 60, 60, 16))) == svg.pixel_key(
+        png((64, 64, 64, 16))
+    ), "Qt PNG round-trip preserves the same RGBa pixel"
+    assert svg.pixel_key(png((60, 60, 60, 240))) == svg.pixel_key(
+        png((59, 59, 59, 240))
+    ), "Qt premultiplication rounding is not an icon difference"
+    assert svg.pixel_key(png((60, 60, 60, 255))) != svg.pixel_key(
+        png((64, 64, 64, 255))
+    ), "Opaque color differences must not collapse"
+    assert svg.pixel_key(png((60, 60, 60, 16))) != svg.pixel_key(
+        png((60, 60, 60, 17))
+    ), "Alpha differences must not collapse"
+
+
+def test_mapping_refuses_stale_fingerprint_indexes_before_editing():
+    root = tree(f'<image href="{uri(png((60, 60, 60, 16)))}"/>')
+    before = ET.tostring(root)
+    with pytest.raises(ValueError, match="Rebuild"):
+        svg.map_images(root, {"schema": "grablab.raster-index/1", "pixels": {}})
+    assert ET.tostring(root) == before, "Stale index refusal leaves input intact"
+
+
+@pytest.mark.parametrize("duplicate", [False, True])
+def test_native_quantization_maps_only_unambiguous_vectors(tmp_path, duplicate):
+    assets(tmp_path, duplicate)
+    (tmp_path / "one.png").write_bytes(png((60, 60, 60, 16)))
+    if duplicate:
+        (tmp_path / "two.png").write_bytes(png((64, 64, 64, 16)))
+    index = svg.build_raster_index(tmp_path / "manifest.json")
+    root = tree(f'<image href="{uri(png((64, 64, 64, 16)))}"/>')
+    mapping = svg.map_images(root, index)
+    row = next(iter(mapping.values()))
+    assert row["status"] == ("ambiguous" if duplicate else "matched"), (
+        "Quantization must not choose between distinct vectors"
+    )
+    assert row["pixel_format"] == "RGBa8", "Mapping discloses the exact representation"
+    assert svg.inline_images(root, mapping)["replaced"] == (0 if duplicate else 1)
 
 
 def test_mapping_and_inline_preserve_viewport_and_namespaced_refs(tmp_path):
@@ -521,10 +560,13 @@ def test_composed_monochrome_preserves_existing_filter_and_clip_references(tmp_p
         assert "grayscale(1)" in panel.get("style", "")
 
 
-@pytest.mark.parametrize("style", [
-    "svg > image { transform:translate(10px,0); filter:url(#effect) }",
-    "g { opacity:0.5; clip-path:url(#clip) }",
-])
+@pytest.mark.parametrize(
+    "style",
+    [
+        "svg > image { transform:translate(10px,0); filter:url(#effect) }",
+        "g { opacity:0.5; clip-path:url(#clip) }",
+    ],
+)
 @pytest.mark.parametrize("mode", ["monochrome", "wireframe"])
 def test_raster_wrapping_refuses_author_styles_before_any_mutation(style, mode):
     root = tree(f'<style>{style}</style><image href="data:image/png;base64,raw"/>')
@@ -540,12 +582,19 @@ def test_compose_many_semantic_ids_rewrites_each_url_once(tmp_path):
     source = tmp_path / "semantic.svg"
     root = tree('<defs><clipPath id="clip"/></defs>')
     for number in range(1600):
-        ET.SubElement(root, f"{{{svg.SVG}}}rect", {
-            "id": f"widget-panel-control-{number}", "x": str(number),
-            "width": "1", "height": "2", "fill": "#333333",
-            "clip-path": "url( '#clip' )",
-            "style": f"marker-start:url(\"#widget-panel-control-{number}\");marker-end:url(#external)",
-        })
+        ET.SubElement(
+            root,
+            f"{{{svg.SVG}}}rect",
+            {
+                "id": f"widget-panel-control-{number}",
+                "x": str(number),
+                "width": "1",
+                "height": "2",
+                "fill": "#333333",
+                "clip-path": "url( '#clip' )",
+                "style": f'marker-start:url("#widget-panel-control-{number}");marker-end:url(#external)',
+            },
+        )
     source.write_bytes(ET.tostring(root))
     started = time.monotonic()
     result = svg.compose([(source, 0, 0), (source, 100, 0)], width=200, height=100)
@@ -553,7 +602,9 @@ def test_compose_many_semantic_ids_rewrites_each_url_once(tmp_path):
     assert elapsed < 5, f"1600-element composition took {elapsed:.3f}s"
     for panel_number, panel in enumerate(result):
         for number, node in enumerate(list(panel)[1:]):
-            assert node.get("id") == f"panel-{panel_number}-widget-panel-control-{number}"
+            assert (
+                node.get("id") == f"panel-{panel_number}-widget-panel-control-{number}"
+            )
             assert node.get("clip-path") == f"url(#panel-{panel_number}-clip)"
             assert node.get("style") == (
                 f"marker-start:url(#panel-{panel_number}-widget-panel-control-{number});marker-end:url(#external)"
@@ -561,14 +612,23 @@ def test_compose_many_semantic_ids_rewrites_each_url_once(tmp_path):
             assert node.get("fill") == "#333333" and node.get("x") == str(number)
 
 
-@pytest.mark.parametrize("options", [
-    {"fill": "#333333", "monochrome": True}, {"wireframe": True},
-    {"stroke": "black"}, {"stroke_width": 2}, {"font": "Example"}, {},
-])
+@pytest.mark.parametrize(
+    "options",
+    [
+        {"fill": "#333333", "monochrome": True},
+        {"wireframe": True},
+        {"stroke": "black"},
+        {"stroke_width": 2},
+        {"font": "Example"},
+        {},
+    ],
+)
 def test_restyle_refuses_masks_before_mutating_inherited_paint_or_font(options):
-    root = tree('<g fill="white" font-family="serif"><defs><mask id="m">'
-                '<rect width="100" height="100"/><text>Mask</text></mask></defs>'
-                '<rect fill="red" mask="url(#m)"/></g>')
+    root = tree(
+        '<g fill="white" font-family="serif"><defs><mask id="m">'
+        '<rect width="100" height="100"/><text>Mask</text></mask></defs>'
+        '<rect fill="red" mask="url(#m)"/></g>'
+    )
     before = ET.tostring(root)
     with pytest.raises(ValueError, match="Restyling SVG masks is unsupported"):
         svg.restyle(root, background="yellow", **options)
@@ -586,9 +646,11 @@ def test_monochrome_keeps_contrast_paints_and_filter_chain():
 
 
 def test_wireframe_preserves_occlusion_none_and_resource_geometry():
-    root = tree('<defs><pattern id="p"><path fill="red" d="M0 0h2"/></pattern></defs>'
-                '<path id="row" fill="red"/><rect id="footer" fill="#eee"/>'
-                '<path fill="none"/><text>Footer</text>')
+    root = tree(
+        '<defs><pattern id="p"><path fill="red" d="M0 0h2"/></pattern></defs>'
+        '<path id="row" fill="red"/><rect id="footer" fill="#eee"/>'
+        '<path fill="none"/><text>Footer</text>'
+    )
     resource = ET.tostring(root[0])
     svg.restyle(root, wireframe=True, background="white")
     assert ET.tostring(root[1]) == resource
@@ -612,7 +674,9 @@ def test_monochrome_repeated_filter_and_important_filter_refusal():
     assert ET.tostring(root) == before
 
 
-@pytest.mark.parametrize("keyword", ["initial", "unset", "inherit", "revert", "revert-layer", "INITIAL"])
+@pytest.mark.parametrize(
+    "keyword", ["initial", "unset", "inherit", "revert", "revert-layer", "INITIAL"]
+)
 @pytest.mark.parametrize("location", ["style", "attribute"])
 def test_monochrome_css_wide_root_filter_refused_before_mutation(keyword, location):
     root = tree('<rect fill="red"/><text font-family="serif">Label</text>')
@@ -623,4 +687,6 @@ def test_monochrome_css_wide_root_filter_refused_before_mutation(keyword, locati
     before = ET.tostring(root)
     with pytest.raises(ValueError, match="CSS-wide root filter"):
         svg.restyle(root, monochrome=True, background="white")
-    assert ET.tostring(root) == before, "Refusal must preserve paints, fonts and geometry"
+    assert ET.tostring(root) == before, (
+        "Refusal must preserve paints, fonts and geometry"
+    )

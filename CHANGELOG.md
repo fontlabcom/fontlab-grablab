@@ -163,3 +163,7 @@ No open tasks. Workspace-level work is tracked in the parent TODO.md.
 
 - Keep unnamed measured menu/menu-bar QAction content in FontSnap-compatible
   parts; reserve generated IDs for runtime extensions and Designer references.
+
+## Issue 131 premultiplied PNG matching
+
+- Match exact8-bit premultiplied pixels across Qt PNG round-trips, preserving ambiguity and visible channel/alpha differences. Rebuild schema1indexes as schema2.

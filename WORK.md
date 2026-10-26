@@ -367,3 +367,7 @@ Wait, but: these host-free controls do not establish the actual capture pipeline
 rendering or installed-artifact identity. Root retains wheel rebuild, actual
 composition and native/browser acceptance ownership. Masks are an explicit API
 limitation, not a claim of correct mask recoloring.
+
+## Issue 131 exact premultiplied icon matching
+
+Actual Qt PNG round-trip changes RGB60/alpha16 into RGB64/alpha16; both are RGBa4/alpha16. Pillow documented RGBa conversion now fingerprints exact rendered8-bit pixels and dimensions instead of straight PNG channels. No fuzzy/alpha-only matching or new dependency. Index schema2 and pixel_format RGBa8 explicitly reject stale indexes. Tests first reproduced the mismatch/stale-index acceptance; ambiguity after quantization remains unresolved. Actual Glyph capture inlining rises14to20; Font window15to20, retaining95/126 images respectively. Those include previews, missing assets and ambiguity; no all-vector claim. Official Pillow modes documentation consulted. Root implemented after child executor lost all filesystem tools (OS24); no child changes overlapped.
