@@ -525,3 +525,44 @@ def test_raster_wrapping_refuses_author_styles_before_any_mutation(style, mode):
     with pytest.raises(ValueError, match="Unsupported stylesheet.*raster"):
         svg.restyle(root, **{mode: True})
     assert ET.tostring(root) == before
+
+
+def test_compose_many_semantic_ids_rewrites_each_url_once(tmp_path):
+    import time
+
+    source = tmp_path / "semantic.svg"
+    root = tree('<defs><clipPath id="clip"/></defs>')
+    for number in range(1600):
+        ET.SubElement(root, f"{{{svg.SVG}}}rect", {
+            "id": f"widget-panel-control-{number}", "x": str(number),
+            "width": "1", "height": "2", "fill": "#333333",
+            "clip-path": "url( '#clip' )",
+            "style": f"marker-start:url(\"#widget-panel-control-{number}\");marker-end:url(#external)",
+        })
+    source.write_bytes(ET.tostring(root))
+    started = time.monotonic()
+    result = svg.compose([(source, 0, 0), (source, 100, 0)], width=200, height=100)
+    elapsed = time.monotonic() - started
+    assert elapsed < 5, f"1600-element composition took {elapsed:.3f}s"
+    for panel_number, panel in enumerate(result):
+        for number, node in enumerate(list(panel)[1:]):
+            assert node.get("id") == f"panel-{panel_number}-widget-panel-control-{number}"
+            assert node.get("clip-path") == f"url(#panel-{panel_number}-clip)"
+            assert node.get("style") == (
+                f"marker-start:url(#panel-{panel_number}-widget-panel-control-{number});marker-end:url(#external)"
+            )
+            assert node.get("fill") == "#333333" and node.get("x") == str(number)
+
+
+@pytest.mark.parametrize("options", [
+    {"fill": "#333333", "monochrome": True}, {"wireframe": True},
+    {"stroke": "black"}, {"stroke_width": 2}, {"font": "Example"}, {},
+])
+def test_restyle_refuses_masks_before_mutating_inherited_paint_or_font(options):
+    root = tree('<g fill="white" font-family="serif"><defs><mask id="m">'
+                '<rect width="100" height="100"/><text>Mask</text></mask></defs>'
+                '<rect fill="red" mask="url(#m)"/></g>')
+    before = ET.tostring(root)
+    with pytest.raises(ValueError, match="Restyling SVG masks is unsupported"):
+        svg.restyle(root, background="yellow", **options)
+    assert ET.tostring(root) == before, "Refusal must preserve the whole document"

@@ -162,14 +162,17 @@ def _namespace(root: ET.Element, prefix: str) -> None:
         for name in node.get("class", "").split()
     }
 
+    url_reference = re.compile(r"url\(\s*(['\"]?)#([^'\"\s)]+)\1\s*\)")
+
     def refs(value: str) -> str:
-        for old, new in ids.items():
-            value = re.sub(
-                r"url\(\s*(['\"]?)#" + re.escape(old) + r"\1\s*\)",
-                f"url(#{new})",
-                value,
-            )
-        return value
+        if "url(" not in value:
+            return value
+
+        def replace(match: re.Match) -> str:
+            target = ids.get(match[2])
+            return f"url(#{target})" if target is not None else match[0]
+
+        return url_reference.sub(replace, value)
 
     for node in root.iter():
         for key, value in list(node.attrib.items()):
@@ -564,7 +567,7 @@ def restyle(
     """Restyle presentation/inline CSS; retain opacity and none paints.
 
     Resolve author CSS cascade/inheritance first to preserve effective no-paint.
-    Unsupported/contextual CSS fails before edits. Wireframe explicitly changes
+    Mask-bearing documents and unsupported/contextual CSS fail before edits. Wireframe explicitly changes
     paints to monochrome outlines and text; stylesheet rules remain in place.
     Monochrome/wireframe wrap retained images with the standard grayscale filter
     shorthand, preserving their bytes, geometry and existing effect attributes.
@@ -573,6 +576,9 @@ def restyle(
         not math.isfinite(stroke_width) or stroke_width < 0
     ):
         raise ValueError("Stroke width must be finite and nonnegative")
+    # Even a font-only change can alter text-based masks through inheritance.
+    if any(node.tag == f"{{{SVG}}}mask" for node in root.iter()):
+        raise ValueError("Restyling SVG masks is unsupported; preserve mask painting")
     if wireframe:
         stroke, fill = stroke or "#333333", "none"
         stroke_width = 1 if stroke_width is None else stroke_width

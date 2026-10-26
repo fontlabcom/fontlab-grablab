@@ -295,3 +295,29 @@ Checks through `rtk proxy`, isolated checkout: the same PYTHONPATH/canonical Pyt
 pytest command with `tests/test_snapshot.py -k menu_action` passes 2 tests; full
 `-m pytest -q` passes 21 tests (including Qt5 uic subprocesses), exit 0.
 `git diff --check` passes, exit 0. Root still owns rebuilt artifact/native checks.
+
+
+## Issue 131 final SVG review fixes — 2026-10-26
+
+Replaced the per-ID URL rewrite loop with one compiled expression and dictionary
+lookup; non-reference attributes bypass regex work. Existing quoted local URL,
+href, class/selector and color controls stay green. Added a realistic semantic
+fixture with 1,600 rect IDs, quoted clip references, per-element marker references,
+unknown external fragments and two composed panels. Its measured pytest call is
+0.02 s; the regression allows 5 s to catch the prior multi-minute stall.
+
+Restyle now refuses every mask-bearing document before mutation. This deliberately
+includes default/font-only changes because inherited fonts can change text masks;
+skipping mask children alone would not preserve inherited paint. Six controls
+assert whole-document byte equality after refusal, including background requests.
+No dependency, native call or live install changed.
+
+Exact commands in this isolated checkout (existing external environment):
+- `PYTHONPATH=src /Volumes/Falstaff4T/fontlab-scripting-data/issue131/svg-env/bin/python -m pytest -q` — exit 0, 104 passed in 0.37 s.
+- `PYTHONPATH=src /Volumes/Falstaff4T/fontlab-scripting-data/issue131/svg-env/bin/python -m pytest -q tests/test_svg.py --durations=3` — exit 0, 51 passed in 0.09 s, many-ID call 0.02 s.
+- `git diff --check` — exit 0.
+
+Wait, but: these host-free controls do not establish the actual capture pipeline's
+rendering or installed-artifact identity. Root retains wheel rebuild, actual
+composition and native/browser acceptance ownership. Masks are an explicit API
+limitation, not a claim of correct mask recoloring.

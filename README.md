@@ -179,7 +179,9 @@ Unsupported/unmatched counts and limits remain in returned stats.
 `compose([(path, x, y), ...], width=..., height=...)` uses explicit logical
 positions, input paint order, source viewBox sizes and collision-free local IDs.
 `restyle` changes stroke/fill/width/background/font (`system-ui` by default),
-including inline CSS. Wireframe keeps readable monochrome text and outlines.
+including inline CSS. Documents containing `<mask>` are refused before any
+mutation, including font-only changes: inherited paint and text geometry affect
+mask opacity. Wireframe keeps readable monochrome text and outlines.
 `monochrome=True` and wireframe also grayscale retained rasters in an outer group,
 preserving image bytes/geometry/effects. `filtered_images` discloses their count;
 the standard CSS grayscale filter shorthand needs a supporting SVG renderer.

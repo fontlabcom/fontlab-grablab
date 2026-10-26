@@ -4,6 +4,13 @@ this_file: CHANGELOG.md
 
 # Changelog
 
+## 2026-10-26 — issue 131 final SVG review fixes
+
+- Rewrite local URL references in one dictionary-backed pass, avoiding per-ID
+  regex compilation on every attribute during large semantic capture composition.
+- Refuse mask-bearing restyling before mutation, including font changes, to
+  preserve luminance masks and inherited text geometry.
+
 ## 2026-10-26 — issue 131 Task 9 review fix
 
 - Refuse stylesheet-bearing retained-raster monochrome/wireframe input before
