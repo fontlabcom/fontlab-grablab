@@ -20,7 +20,7 @@ Conservative refusal preserves the complete document; no cascade resolver added.
 
 Fresh commands (exit0):
 ```
-rtk proxy env PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 /Volumes/Falstaff4T/fontlab-scripting-data/issue131/svg-env/bin/python -m pytest -q
+rtk proxy env PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 <svg-env>/bin/python -m pytest -q
 rtk proxy uvx ruff check src/grablab/svg.py tests/test_svg.py
 rtk proxy git diff --check
 ```
@@ -46,7 +46,7 @@ filter function composition: https://www.w3.org/TR/filter-effects-1/#FilterPrope
 Two new contrast/occlusion tests failed before implementation. Fresh checks:
 
 ```
-rtk proxy env PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 /Volumes/Falstaff4T/fontlab-scripting-data/issue131/svg-env/bin/python -m pytest -q
+rtk proxy env PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 <svg-env>/bin/python -m pytest -q
 rtk proxy uvx ruff check src/grablab/svg.py tests/test_svg.py
 rtk proxy git diff --check
 ```
