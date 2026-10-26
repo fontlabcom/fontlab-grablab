@@ -4,6 +4,23 @@ this_file: WORK.md
 
 # Migration evidence
 
+## Issue 131 Task 10 review fix round1 — 2026-10-26
+
+Refuse CSS-wide root filter keywords before monochrome mutation, preventing
+invalid keyword/function lists from silently preserving coloured output. Covers
+initial, unset, inherit, revert and revert-layer, case-insensitively, in inline
+styles and presentation attributes. All12new parametrized controls failed first.
+Conservative refusal preserves the complete document; no cascade resolver added.
+
+Fresh commands (exit0):
+```
+rtk proxy env PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 /Volumes/Falstaff4T/fontlab-scripting-data/issue131/svg-env/bin/python -m pytest -q
+rtk proxy uvx ruff check src/grablab/svg.py tests/test_svg.py
+rtk proxy git diff --check
+```
+119tests pass and Ruff/diff clean. Wait, but: actual screenshot rerenders and
+ordinary artifacts remain the root's separate gate; no native or tooling changes.
+
 ## Issue 131 Task 10 rendered acceptance correction — 2026-10-26
 
 Actual Chrome captures exposed two presentation failures. Monochrome now applies

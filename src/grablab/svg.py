@@ -595,6 +595,12 @@ def restyle(
     root_css = dict(part.split(":", 1) for part in root.get("style", "").split(";") if ":" in part)
     if monochrome and any(key.strip() == "filter" and "!important" in value for key, value in root_css.items()):
         raise ValueError("Unsupported important root filter for monochrome")
+    root_css = {key.strip(): value.strip() for key, value in root_css.items()}
+    root_filter = root_css.get("filter", root.get("filter", ""))
+    if monochrome and root_filter.strip().lower() in {
+        "initial", "unset", "inherit", "revert", "revert-layer"
+    }:
+        raise ValueError("Unsupported CSS-wide root filter for monochrome")
     paints = _effective_paints(root)
     resources = {
         child for node in root.iter()

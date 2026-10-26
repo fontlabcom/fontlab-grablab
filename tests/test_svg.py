@@ -610,3 +610,17 @@ def test_monochrome_repeated_filter_and_important_filter_refusal():
     with pytest.raises(ValueError, match="important root filter"):
         svg.restyle(root, monochrome=True)
     assert ET.tostring(root) == before
+
+
+@pytest.mark.parametrize("keyword", ["initial", "unset", "inherit", "revert", "revert-layer", "INITIAL"])
+@pytest.mark.parametrize("location", ["style", "attribute"])
+def test_monochrome_css_wide_root_filter_refused_before_mutation(keyword, location):
+    root = tree('<rect fill="red"/><text font-family="serif">Label</text>')
+    if location == "style":
+        root.set("style", f"filter: {keyword} ")
+    else:
+        root.set("filter", keyword)
+    before = ET.tostring(root)
+    with pytest.raises(ValueError, match="CSS-wide root filter"):
+        svg.restyle(root, monochrome=True, background="white")
+    assert ET.tostring(root) == before, "Refusal must preserve paints, fonts and geometry"
