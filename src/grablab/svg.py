@@ -576,6 +576,11 @@ def restyle(
     if wireframe:
         stroke, fill = stroke or "#333333", "none"
         stroke_width = 1 if stroke_width is None else stroke_width
+    if (monochrome or wireframe) and any(
+        node.tag == f"{{{SVG}}}image" for node in root.iter()
+    ) and any(node.tag == f"{{{SVG}}}style" for node in root.iter()):
+        # New groups change selector matches on images, wrappers and siblings.
+        raise ValueError("Unsupported stylesheet with retained raster wrapping")
     paints = _effective_paints(root)
     stats = {"styled": 0, "filtered_images": 0}
     for node in root.iter():

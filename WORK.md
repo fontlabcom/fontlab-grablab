@@ -4,6 +4,26 @@ this_file: WORK.md
 
 # Migration evidence
 
+## Issue 131 Tasks 8–9 review fix1 — 2026-10-26
+
+Read task-8-9-review.md; four new parametrized SVG controls failed first because
+selector-sensitive retained-image wrapping was accepted. Smallest safe fix refuses
+any retained-raster monochrome/wireframe input containing author style elements,
+before all mutation. Vector-only styles and ordinary restyle remain supported.
+No CSS engine expansion, dependency, native call, installation or font work.
+
+Fresh validation (exit0), from this checkout:
+
+```
+rtk proxy env PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 /Volumes/Falstaff4T/fontlab-scripting-data/issue131/svg-env/bin/python -m pytest -q
+rtk proxy uvx ruff check src/grablab/svg.py tests/test_svg.py
+rtk proxy git -C /Volumes/Falstaff4T/fontlab-scripting-data/issue131/grablab diff --check
+```
+
+Full suite97passed; Ruff clean. Wait, but: stylesheet-bearing raster input is now
+explicitly unsupported for these structural modes; rendered/native/installed
+acceptance remains the root's separate check. Task8 tools remain uncommitted.
+
 ## Issue 131 Task 9 — 2026-10-26 retained raster monochrome
 
 Base c959bc9. Root's Chrome probe measured retained red PNG RGB255,0,0 despite

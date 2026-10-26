@@ -4,6 +4,11 @@ this_file: CHANGELOG.md
 
 # Changelog
 
+## 2026-10-26 — issue 131 Task 9 review fix
+
+- Refuse stylesheet-bearing retained-raster monochrome/wireframe input before
+  mutation, preserving selector-dependent geometry/effects by failing explicitly.
+
 ## 2026-10-26 — issue 131 retained raster monochrome treatment
 
 - Add explicit monochrome raster presentation to restyle, also enabled by

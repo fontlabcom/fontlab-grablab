@@ -512,3 +512,16 @@ def test_composed_monochrome_preserves_existing_filter_and_clip_references(tmp_p
         assert image.get("filter") == f"url(#panel-{number}-effect)"
         assert image.get("clip-path") == f"url(#panel-{number}-clip)"
         assert "grayscale(1)" in panel[1].get("style", "")
+
+
+@pytest.mark.parametrize("style", [
+    "svg > image { transform:translate(10px,0); filter:url(#effect) }",
+    "g { opacity:0.5; clip-path:url(#clip) }",
+])
+@pytest.mark.parametrize("mode", ["monochrome", "wireframe"])
+def test_raster_wrapping_refuses_author_styles_before_any_mutation(style, mode):
+    root = tree(f'<style>{style}</style><image href="data:image/png;base64,raw"/>')
+    before = ET.tostring(root)
+    with pytest.raises(ValueError, match="Unsupported stylesheet.*raster"):
+        svg.restyle(root, **{mode: True})
+    assert ET.tostring(root) == before

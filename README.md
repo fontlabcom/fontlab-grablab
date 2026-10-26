@@ -183,6 +183,10 @@ including inline CSS. Wireframe keeps readable monochrome text and outlines.
 `monochrome=True` and wireframe also grayscale retained rasters in an outer group,
 preserving image bytes/geometry/effects. `filtered_images` discloses their count;
 the standard CSS grayscale filter shorthand needs a supporting SVG renderer.
+Retained rasters combined with author `<style>` elements are refused before any
+mutation in monochrome/wireframe mode: adding a wrapper can change selector
+matches and effective geometry/effects. Presentation/inline image effects remain
+supported; ordinary restyling and stylesheet-only vector input remain supported.
 Ordinary color changes preserve effective `none` from presentation attributes,
 class/ID CSS and inline styles using specificity, source order, inheritance and
 `!important`. Conditional stylesheet rules and unresolved contextual paints fail
