@@ -4,6 +4,46 @@ this_file: WORK.md
 
 # Migration evidence
 
+## Icon modes verification — 2026-10-26
+
+Source466d986 ordinary wheel/sdist version0.2.1.dev21+g466d986e0 each preserve
+all4runtime files byte-for-byte; both independently installed targets pass141tests.
+The initial artifact audit caught two historical machine paths in CHANGELOG;
+replaced them with portable environment placeholders before rebuilding.
+An initial audit tried to open uv's .gitignore as an archive; narrowed input to
+wheel/tar.gz artifacts. Neither failed audit updated the runtime pin.
+
+Actual fl-uiicons runtime pin selects466d986 with verified SHA256. Tools48tests
+pass (including all modes, naming collisions, missing-resource base64 and CLI
+invalid-option refusal). Both existing capture sets process in all4modes.
+Every substitution mode changes20instances; base64 retains115/146, others retain
+95/126. All3235capture/asset inputs remain SHA256-identical.
+Chrome156.0.8078.47 verifies156individual/composed documents, all expected external
+requests200, no duplicate IDs/page errors, grayscale mono/wireframe,24gallery
+previews and390px layout.12pixel+request controls prove direct/iframe rendering
+and blocked linked images in HTML img. An injected404 visibly fails as expected.
+Root visually inspected actual SVG-linked Glyph and PNG-linked Font wireframe.
+
+Exact commands through rtk proxy (exit0 unless stated):
+- env PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 <svg-env>/bin/python -m pytest -q:141passed.
+- uvx ruff check src/grablab/svg.py tests/test_svg.py; git diff --check: both0.
+- uv build --wheel --sdist --out-dir <issue131>/icon-modes-dist-r1:0.
+- uv pip install --python <svg-env>/bin/python --no-deps --target <issue131>/icon-modes-installed-{wheel,sdist} <archive>: both0.
+- env PYTHONPATH=<installed-target> PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 <svg-env>/bin/python -m pytest -c /dev/null -p no:cacheprovider -q <worktree>/tests:141passed for each.
+- bash test.sh in actual fl-uiicons:48passed. Earlier old-pin run failed missing process_images, as expected.
+- python3.11 verification/issue-131/process-icon-modes.py:0, eight real process.sh calls.
+- uv run --no-project --with playwright --with pillow python verification/issue-131/icon-modes-browser-check.py: final0. Initial full-page SVG screenshot timed out; retained partial documents.json, then used the established viewport screenshot recipe in a fresh evidence directory.
+- uv run --no-project --with playwright --with pillow --with svgelements --with cssselect2 --with tinycss2 python verification/issue-131/icon-modes-embedding-check.py:0.
+- sh .metaswarm/quality.sh coverage <worktree> fontlab-grablab:141passed, svg96.65%combined, unchanged80%threshold; workspace .metaswarm/runs/fontlab-grablab.fGIQSE.
+
+Direct review covers all callers, existing inline API, outcome counters, PNG
+selection, escaping/composition, geometry, cleanup order, raw preservation and
+runtime pin. No native module or dependency change. Evidence: workspace
+verification/issue-131/icon-modes-audit.md and external issue131/icon-modes-*.
+Wait, but: linked assets must remain reachable. External SVG interiors cannot
+inherit screenshot styles; HTML img restrictions require document embedding or
+PNG previews. No remote img publication or native capture qualification implied.
+
 ## Icon modes source candidate — 2026-10-26
 
 Implemented host-free process_images and optional image-link rebasing in compose.

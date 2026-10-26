@@ -4,6 +4,15 @@ this_file: PLAN.md
 
 # Plan
 
+The four-mode icon follow-up is implemented and verified:141package tests,
+48actual-wheel tool tests, source-exact ordinary466d986artifacts,156real SVG
+documents in Chrome156,24gallery previews and12embedding controls.
+URL modes preserve named resources and disclose external-image styling/embedding
+limits. Existing native capture code is byte-identical; no native rerun is needed
+for this host-free extension. Workspace verification/issue-131/icon-modes-audit.md
+records the current evidence and delivery.
+
+
 Issue 131 capture/SVG work is implemented and reviewed. Ordinary wheel and sdist
 runtime bytes match source90c1842; 122 installed-wheel tests pass. FontLab9794
 owned Font/Glyph-window, canvas and panel captures verify metadata and preference
