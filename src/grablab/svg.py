@@ -559,12 +559,15 @@ def restyle(
     background: str | None = None,
     font: str = "system-ui",
     wireframe: bool = False,
+    monochrome: bool = False,
 ) -> dict:
     """Restyle presentation/inline CSS; retain opacity and none paints.
 
     Resolve author CSS cascade/inheritance first to preserve effective no-paint.
     Unsupported/contextual CSS fails before edits. Wireframe explicitly changes
     paints to monochrome outlines and text; stylesheet rules remain in place.
+    Monochrome/wireframe wrap retained images with the standard grayscale filter
+    shorthand, preserving their bytes, geometry and existing effect attributes.
     """
     if stroke_width is not None and (
         not math.isfinite(stroke_width) or stroke_width < 0
@@ -574,7 +577,7 @@ def restyle(
         stroke, fill = stroke or "#333333", "none"
         stroke_width = 1 if stroke_width is None else stroke_width
     paints = _effective_paints(root)
-    stats = {"styled": 0}
+    stats = {"styled": 0, "filtered_images": 0}
     for node in root.iter():
         kind = node.tag.rsplit("}", 1)[-1]
         if kind not in (
@@ -615,6 +618,23 @@ def restyle(
         css.update(updates)
         node.set("style", ";".join(f"{key}:{value}" for key, value in css.items()))
         stats["styled"] += 1
+    if monochrome or wireframe:
+        for parent in list(root.iter()):
+            for position, image in enumerate(list(parent)):
+                if image.tag != f"{{{SVG}}}image":
+                    continue
+                stats["filtered_images"] += 1
+                if parent.get("data-grablab-monochrome") == "true":
+                    continue
+                # W3C grayscale() is feColorMatrix shorthand with an overflow-aware region.
+                wrapper = ET.Element(
+                    f"{{{SVG}}}g",
+                    {"style": "filter:grayscale(1)", "data-grablab-monochrome": "true"},
+                )
+                wrapper.tail, image.tail = image.tail, None
+                parent.remove(image)
+                wrapper.append(image)
+                parent.insert(position, wrapper)
     if background is not None:
         root.insert(
             0,

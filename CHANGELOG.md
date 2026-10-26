@@ -4,6 +4,12 @@ this_file: CHANGELOG.md
 
 # Changelog
 
+## 2026-10-26 — issue 131 retained raster monochrome treatment
+
+- Add explicit monochrome raster presentation to restyle, also enabled by
+  wireframe. Preserve image bytes, geometry, existing effects and sibling order;
+  reuse marked grayscale wrappers on repeated calls and report filtered counts.
+
 ## 2026-10-26 — issue 131 screen/canvas pairing
 
 - Pair high-level screen captures as PNG plus explicitly raster-backed SVG;

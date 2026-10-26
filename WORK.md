@@ -4,6 +4,39 @@ this_file: WORK.md
 
 # Migration evidence
 
+## Issue 131 Task 9 — 2026-10-26 retained raster monochrome
+
+Base c959bc9. Root's Chrome probe measured retained red PNG RGB255,0,0 despite
+wireframe styling. Four new tests failed first: explicit monochrome kwarg and
+wireframe raster treatment were absent. Added standard filter:grayscale(1) on an
+outer group at each retained image's sibling slot. Image attributes/bytes stay
+unchanged, including its prior filter/clip/transform; own wrapper is reused on
+repeated styling. No filter IDs are needed or added; compose still namespaces
+the preserved existing filter/clip refs. Normal restyling does not add treatment.
+The one allowed canonical process_captures.py mono caller now asks monochrome=True;
+canonical icon tooling was not committed and no other tool files were edited.
+
+Reviewed W3C Filter Effects sections6.1,13.1.1,13.2: grayscale() is the platform
+feColorMatrix shorthand, whose UA-defined region includes overflowing visual
+content. This avoids clipping existing blur/shadow output with a guessed finite
+SVG filter rectangle. No custom color parser or PNG pixel rewrite/dependency.
+Original image filters remain on the original image, before the grayscale group.
+
+Focused tests40passed. Full suite93passed, SVG338/347statements and155/168branches,
+zero exclusions (combined96%). Exact commands, exit0:
+
+```
+rtk proxy env PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 /Volumes/Falstaff4T/fontlab-scripting-data/issue131/svg-env/bin/python -m pytest -q tests/test_svg.py
+rtk proxy env COVERAGE_FILE=/Volumes/Falstaff4T/fontlab-scripting-data/issue131/task9.coverage PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 /Volumes/Falstaff4T/fontlab-scripting-data/issue131/svg-env/bin/python -m pytest -p pytest_cov --cov=grablab.svg --cov-branch --cov-report=term-missing --cov-report=json:/Volumes/Falstaff4T/fontlab-scripting-data/issue131/task9-coverage.json -q
+rtk proxy uvx ruff check src/grablab/svg.py tests/test_svg.py
+```
+
+Retained processed source probe externally at
+issue131/wireframe-retained-red-probe-task9.svg; root owns browser pixel proof.
+Wait, but: this is deliberate presentation styling, not vectorization or changed
+raster identity. Actual renderer support and pixel output remain root checks;
+native hosts/live installations and raw probe are untouched.
+
 ## Issue 131 Task 7 — 2026-10-26 high-level screen/canvas bundles
 
 Base2644bef, isolated checkout only. Read AGENTS/README/WORK/CHANGELOG, issue131

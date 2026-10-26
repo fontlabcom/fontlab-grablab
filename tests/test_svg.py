@@ -469,3 +469,46 @@ def test_unresolved_css_fails_before_mutating_paint(style):
     with pytest.raises(ValueError):
         svg.restyle(root, fill="yellow")
     assert ET.tostring(root) == original
+
+
+@pytest.mark.parametrize("mode", ["monochrome", "wireframe"])
+def test_monochrome_retained_png_keeps_pixels_geometry_and_effects(mode):
+    href = uri(png((255, 0, 0, 255)))
+    root = tree(
+        f'<defs><filter id="effect"><feGaussianBlur stdDeviation="3"/></filter><clipPath id="clip"/></defs><path id="before"/><image id="raster" x="4" y="5" width="20" height="30" transform="rotate(5)" clip-path="url(#clip)" filter="url(#effect)" href="{href}"/><path id="after"/>'
+    )
+    image = root[2]
+    original = dict(image.attrib)
+    stats = svg.restyle(root, **{mode: True})
+    assert stats["filtered_images"] == 1
+    wrapper = root[2]
+    assert wrapper.tag == "{http://www.w3.org/2000/svg}g" and wrapper[0] is image
+    assert image.attrib == original
+    assert root[1].get("id") == "before" and root[3].get("id") == "after"
+    assert wrapper.get("data-grablab-monochrome") == "true"
+    assert "grayscale(1)" in wrapper.get("style", "")
+
+
+def test_monochrome_is_explicit_and_repeated_styling_does_not_nest_wrappers():
+    root = tree('<image href="data:image/png;base64,retained" width="10" height="10"/>')
+    image = root[0]
+    assert svg.restyle(root)["filtered_images"] == 0 and root[0] is image
+    assert svg.restyle(root, monochrome=True)["filtered_images"] == 1
+    wrapper = root[0]
+    assert svg.restyle(root, wireframe=True)["filtered_images"] == 1
+    assert root[0] is wrapper and wrapper[0] is image and len(wrapper) == 1
+
+
+def test_composed_monochrome_preserves_existing_filter_and_clip_references(tmp_path):
+    source = tmp_path / "mono.svg"
+    root = tree(
+        '<defs><filter id="effect"/><clipPath id="clip"/></defs><image filter="url(#effect)" clip-path="url(#clip)" href="data:image/png;base64,raw"/>'
+    )
+    svg.restyle(root, monochrome=True)
+    svg.write_svg(root, source)
+    composed = svg.compose([(source, 0, 0), (source, 100, 0)], width=200, height=100)
+    for number, panel in enumerate(composed):
+        image = panel.find(".//{http://www.w3.org/2000/svg}image")
+        assert image.get("filter") == f"url(#panel-{number}-effect)"
+        assert image.get("clip-path") == f"url(#panel-{number}-clip)"
+        assert "grayscale(1)" in panel[1].get("style", "")
