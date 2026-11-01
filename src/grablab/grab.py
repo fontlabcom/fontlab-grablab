@@ -29,21 +29,29 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import base64
+import json
+import math
+import os
 import shutil
+import sys
+import tempfile
+import time
+import xml.etree.ElementTree as ET
 from contextlib import contextmanager
 from functools import wraps
-from typing import Any, Callable, Iterator
-import tempfile
-import sys
-import xml.etree.ElementTree as ET
 from pathlib import Path
+from typing import Any, Callable, Iterator
 
 from fontlab import CurrentFont
 from fontlabapp import Application
-from fontlabapp.utils import attribdict as adict, slugify, timestamp
-from PythonQt.QtGui import QMessageBox, QMenu
-from PythonQt.QtSvg import QSvgGenerator
+from fontlabapp.utils import attribdict as adict
+from fontlabapp.utils import slugify, timestamp
 from PythonQt.Qt import QBuffer
+from PythonQt.QtGui import QMenu, QMessageBox
+from PythonQt.QtSvg import QSvgGenerator
+
+from .snapshot import embed_svg, free_bundle, native_list, snapshot, ui_xml, value
 
 svg_ns = "http://www.w3.org/2000/svg"
 ET.register_namespace("", svg_ns)
@@ -147,33 +155,51 @@ class Grab(object):
             return self.path(self.pref.folder_base, folder=True)
 
     def getGrabPath(self, name: Any, format: Any, dup: Any=0) -> Any:
+        if getattr(self, "_bundle_base", None) is not None:
+            return self._bundle_base.with_suffix("." + format)
         while True:
             dupstr = f"_{dup}" if dup else ""
             path = self.path(Path(self.grab_folder,
                 f"{self.pref.naming_prefix}{name}_{self.timestamp}{self.grab_suffix}{dupstr}.{format}"))
             if not path.exists():
-                return path
+                return free_bundle(path) if format in ("png", "svg") else path
             dup += 1
 
     @with_capture_preferences
     def getCanvasSVG(self, path: Any, title: Any="", description: Any="") -> Any:
         tmp = self.tmpPath(suffix=".svg")
-        self.app.ws.exportTo(tmp, "SVG")
-        self.optimizeSVG(tmp, title, description)
-        return shutil.move(tmp, self.path(path)) if self.path(tmp).is_file() else None
+        try:
+            self.app.ws.exportTo(tmp, "SVG")
+            self.optimizeSVG(tmp, title, description)
+            return shutil.move(tmp, self.path(path)) if self.path(tmp).is_file() else None
+        finally:
+            tmp.unlink(missing_ok=True)
 
     @with_capture_preferences
     def getCanvasPDF(self, path: Any, title: Any="", description: Any="") -> Any:
         tmp = self.tmpPath(suffix=".pdf")
-        self.app.ws.exportTo(tmp, "PDF")
-        return shutil.move(tmp, self.path(path)) if self.path(tmp).is_file() else None
+        try:
+            self.app.ws.exportTo(tmp, "PDF")
+            return shutil.move(tmp, self.path(path)) if self.path(tmp).is_file() else None
+        finally:
+            tmp.unlink(missing_ok=True)
 
     @with_capture_preferences
     def getPixmapPNG(self, pixmap: Any, path: Any, title: Any="", description: Any="") -> Any:
-        image = pixmap.toImage()
-        path = self.path(self.addSizeToPath(path, image.width(), image.height()))
-        image.setDotsPerMeterX(image.dotsPerMeterX() * image.devicePixelRatio())
-        image.setDotsPerMeterY(image.dotsPerMeterY() * image.devicePixelRatio())
+        return self._saveImagePNG(pixmap.toImage(), path, title, description)
+
+    def _saveImagePNG(self, image: Any, path: Any, title: str="", description: str="") -> Any:
+        """Save the owned image with the current bundle's complete metadata."""
+        path = self.path(path)
+        if path.exists():
+            raise FileExistsError(path)
+        record = getattr(self, "_bundle_record", None)
+        if record is not None:
+            record["pixels"] = [value(image, "width"), value(image, "height")]
+            record["dpr"] = value(image, "devicePixelRatio")
+            image.setText("grablab", json.dumps(record, ensure_ascii=False, sort_keys=True))
+        image.setDotsPerMeterX(value(image, "dotsPerMeterX") * value(image, "devicePixelRatio"))
+        image.setDotsPerMeterY(value(image, "dotsPerMeterY") * value(image, "devicePixelRatio"))
         image.setText("Title", title)
         image.setText("Description", description)
         saved = image.save(path)
@@ -182,7 +208,9 @@ class Grab(object):
     @with_capture_preferences
     def getWidgetSVG(self, widget: Any, path: Any, title: Any="", description: Any="") -> Any:
         tmp = self.tmpPath(suffix=".svg")
-        path = self.addSizeToPath(path, widget.width, widget.height)
+        path = self.path(path)
+        if path.exists():
+            raise FileExistsError(path)
         svg_gen = QSvgGenerator()
         svg_io = QBuffer()
         svg_gen.setSize(widget.size)
@@ -195,9 +223,11 @@ class Grab(object):
         svg = svg_io.data().data().decode("utf-8")
         tmp.write_text(svg, encoding="utf-8")
         self.optimizeSVG(tmp, title, description)
+        if getattr(self, "_bundle_record", None) is not None:
+            embed_svg(tmp, self._bundle_record)
         return shutil.move(tmp, self.path(path)) if self.path(tmp).is_file() else None
 
-    def optimizeSVG(self, path: Any, title: Any="", description: Any="") -> Any:
+    def optimizeSVG(self, path: Any, title: Any="", description: Any="", *, restyle: bool=False) -> Any:
         if not self.path(path).is_file():
             return
         root = ET.parse(path).getroot()
@@ -216,9 +246,11 @@ class Grab(object):
                 el = ET.SubElement(root, f"{{{svg_ns}}}desc")
             el.text = description
         for el in root.findall(".//*[@font-family='.AppleSystemUIFont']"):
-            el.attrib["font-family"] = "system-ui"
+            if restyle:
+                el.attrib["font-family"] = "system-ui"
         for el in root.findall(".//*[@stroke-width='1']"):
-            el.attrib["stroke-width"] = "0.75"
+            if restyle:
+                el.attrib["stroke-width"] = "0.75"
         svg = ET.tostring(root, encoding="utf-8", xml_declaration=True).decode("utf-8")
         with open(self.path(path), "w", encoding="utf-8") as f:
             f.write(svg)
@@ -238,20 +270,78 @@ class Grab(object):
 
     @with_capture_preferences
     def grabScreenPNG(self, screen: Any, screenid: Any) -> Any:
-        grab_path = self.getGrabPath(f"sc{screenid}{self.dark}", "png")
-        x = screen.geometry.x()
-        y = screen.geometry.y()
-        width = screen.geometry.width()
-        height = screen.geometry.height()
+        paths = self._grabScreen(screen, screenid, formats=("png",))
+        return next((path for path in paths if path.suffix == ".png"), None)
 
-        path = self.getPixmapPNG(
-            screen.grabWindow(0, x, y, width, height),
-            grab_path,
-            title=grab_path.stem,
-            description=f"Screen {screenid}: {screen.name}",
-        )
+    def _exportRecord(self, target: Path, kind: str, size: list) -> dict:
+        """Describe non-widget image frames without inventing Designer controls."""
+        return {"manifest": {"tool": "grablab", "version": 2, "build": "", "units": "Logical image frame, origin top-left; pixels / size maps to raster"},
+            "shot": 1, "target": kind, "root": kind, "scope": kind, "class": "",
+            "title": target.stem, "titlebar": False, "file": target.name, "size": size,
+            "pixels": None, "dpr": None, "colorspace": "unknown", "theme": "unknown", "background": None,
+            "state": "", "note": "", "parts": [], "opened_from": "", "popup_parent": "", "opener": {},
+            "context": {"window": "", "checked": [], "outside": {}, "reaches": {}},
+            "taken": time.strftime("%Y-%m-%d %H:%M:%S"), "rects": {}, "texts": {}, "x_ray": False, "nodes": [],
+            "extensions": {"schema": "grablab.capture/1", "capture_kind": kind, "widgets": [], "truncated": False,
+                "limits": ["No QWidget semantics or Designer UI for this export; no document mutation"]}}
 
-        return path
+    def _publishBundle(self, target: Path, paths: list, record: dict, *, designer: bool=False) -> list:
+        """Reuse staged exclusive links and roll back only this bundle's links."""
+        sidecar = self._bundle_base.with_suffix(".json")
+        sidecar.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+        sources = list(paths) + [sidecar]
+        if designer:
+            ui = self._bundle_base.with_suffix(".ui")
+            ui.write_text(ui_xml(record), encoding="utf-8")
+            sources.append(ui)
+        published = []
+        try:
+            for source in sources:
+                destination = target.with_suffix(source.suffix)
+                os.link(source, destination)
+                published.append(destination)
+        except BaseException:
+            for path in published:
+                path.unlink()
+            raise
+        return [path for path in published if path.suffix in (".png", ".svg")]
+
+    @with_capture_preferences
+    def _grabScreen(self, screen: Any, screenid: Any, *, formats: Any=None) -> list:
+        formats = formats if formats is not None else tuple(fmt for fmt in ("png", "svg") if getattr(self.pref, "grab_" + fmt))
+        if not formats:
+            return []
+        target = self.getGrabPath(f"sc{screenid}{self.dark}", formats[0])
+        geometry = value(screen, "geometry")
+        size = [value(geometry, "width"), value(geometry, "height")]
+        if not all(isinstance(n, (int, float)) and math.isfinite(n) and n > 0 for n in size):
+            raise ValueError("Screen geometry requires a positive logical size")
+        record = self._exportRecord(target, "screen-raster", size)
+        record["extensions"].update(representation="raster-backed SVG wrapper", screen_name=value(screen, "name", ""),
+            desktop_geometry=[value(geometry, "x"), value(geometry, "y"), *size])
+        record["extensions"]["limits"].append("Screen SVG embeds one actual screen raster; it is not desktop vectorization")
+        with tempfile.TemporaryDirectory(dir=self.grab_folder) as folder:
+            self._bundle_base, self._bundle_record = Path(folder) / target.name, record
+            try:
+                png = self._bundle_base.with_suffix(".png")
+                if self.getPixmapPNG(screen.grabWindow(0), png, target.stem, f"Screen {screenid}") is None:
+                    return []
+                paths = [png] if "png" in formats else []
+                if "svg" in formats:
+                    width, height = size
+                    root = ET.Element(f"{{{svg_ns}}}svg", width=str(width), height=str(height), viewBox=f"0 0 {width} {height}")
+                    ET.SubElement(root, f"{{{svg_ns}}}title").text = target.stem
+                    ET.SubElement(root, f"{{{svg_ns}}}desc").text = "Raster-backed screen capture; not a vectorized desktop"
+                    ET.SubElement(root, f"{{{svg_ns}}}image", {"x": "0", "y": "0", "width": str(width), "height": str(height), "preserveAspectRatio": "none",
+                        "{http://www.w3.org/1999/xlink}href": "data:image/png;base64," + base64.b64encode(png.read_bytes()).decode("ascii")})
+                    svg = self._bundle_base.with_suffix(".svg")
+                    ET.ElementTree(root).write(svg, encoding="utf-8", xml_declaration=True)
+                    embed_svg(svg, record)
+                    paths.append(svg)
+                return self._publishBundle(target, paths, record)
+            finally:
+                del self._bundle_base
+                del self._bundle_record
 
     def grabScreens(self, screens: Any = None) -> Any:
         paths = []
@@ -266,11 +356,13 @@ class Grab(object):
                 and screenid not in screens
             ):
                 continue
-            if path := self.grabScreenPNG(screen, f"{screenid}"):
-                paths.append(path)
+            paths.extend(self._grabScreen(screen, f"{screenid}"))
         return paths
 
     def grabWidgetPNG(self, widget: Any, abbrtype: Any, name: Any, descriptor: Any="") -> Any:
+        if getattr(self, "_bundle_base", None) is None:
+            paths = self.grabWidget(widget, abbrtype, name, descriptor, _formats=("png",))
+            return next((path for path in paths if path.suffix == ".png"), None)
         grab_path = self.getGrabPath(f"{abbrtype}{self.dark}_{name}", "png")
         if path := self.getPixmapPNG(
             widget.grab(),
@@ -283,6 +375,9 @@ class Grab(object):
             return None
 
     def grabWidgetSVG(self, widget: Any, abbrtype: Any, name: Any, descriptor: Any="") -> Any:
+        if getattr(self, "_bundle_base", None) is None:
+            paths = self.grabWidget(widget, abbrtype, name, descriptor, _formats=("svg",))
+            return next((path for path in paths if path.suffix == ".svg"), None)
         grab_path = self.getGrabPath(f"{abbrtype}{self.dark}_{name}", "svg")
         if path := self.getWidgetSVG(
             widget,
@@ -295,61 +390,108 @@ class Grab(object):
             return None
 
     @with_capture_preferences
-    def grabWidget(self, widget: Any, abbrtype: Any, name: Any, descriptor: Any="") -> Any:
-        paths = []
-        if widget:
-            if self.pref.grab_png:
-                if path := self.grabWidgetPNG(widget, abbrtype, name, descriptor):
-                    paths.append(path)
-            if self.pref.grab_svg:
-                if path := self.grabWidgetSVG(widget, abbrtype, name, descriptor):
-                    paths.append(path)
-        return paths
+    def grabWidget(self, widget: Any, abbrtype: Any, name: Any, descriptor: Any="", *, _formats: Any=None) -> Any:
+        if not widget:
+            return []
+        target = self.getGrabPath(f"{abbrtype}{self.dark}_{name}", "png")
+        formats = _formats if _formats is not None else tuple(fmt for fmt in ("png", "svg") if getattr(self.pref, "grab_" + fmt))
+        record = snapshot(widget, target.stem, target.with_suffix("." + (formats[0] if formats else "png")).name)
+        # Stage a complete bundle; exclusive links never replace another capture.
+        with tempfile.TemporaryDirectory(dir=self.grab_folder) as folder:
+            self._bundle_base = Path(folder) / target.name
+            self._bundle_record = record
+            try:
+                paths = []
+                if "png" in formats:
+                    path = self.grabWidgetPNG(widget, abbrtype, name, descriptor)
+                    if path is None:
+                        return []
+                    paths.append(Path(path))
+                if "svg" in formats:
+                    path = self.grabWidgetSVG(widget, abbrtype, name, descriptor)
+                    if path is None:
+                        return []
+                    paths.append(Path(path))
+                if not paths:
+                    return []
+                return self._publishBundle(target, paths, record, designer=True)
+            finally:
+                del self._bundle_base
+                del self._bundle_record
+
+    def _renderCanvasPNG(self, source: Path, destination: Path) -> Any:
+        """Rasterize this exact exported SVG with owned, bounded Qt objects."""
+        from PythonQt.QtCore import QRectF
+        from PythonQt.QtGui import QImage, QPainter
+        from PythonQt.QtSvg import QSvgRenderer
+        renderer = QSvgRenderer(str(source))
+        try:
+            if not value(renderer, "isValid", False):
+                raise ValueError("Invalid exported canvas SVG")
+            width, height = self._bundle_record["pixels"]
+            image = QImage(width, height, QImage.Format_ARGB32_Premultiplied)
+            if value(image, "isNull", True):
+                raise MemoryError("Cannot allocate canvas PNG")
+            image.fill(0)
+            painter = QPainter()
+            try:
+                if not painter.begin(image):
+                    raise RuntimeError("Cannot paint canvas PNG")
+                renderer.render(painter, QRectF(0, 0, width, height))
+            finally:
+                painter.end()
+            return self._saveImagePNG(image, destination, source.stem, "Canvas SVG rasterization")
+        finally:
+            renderer.deleteLater()
+
+    def _grabCanvasBundle(self, name: str) -> list:
+        formats = tuple(fmt for fmt in ("png", "svg") if getattr(self.pref, "grab_" + fmt))
+        if not formats:
+            return []
+        target = self.getGrabPath(name, formats[0])
+        with tempfile.TemporaryDirectory(dir=self.grab_folder) as folder:
+            source = Path(folder) / target.with_suffix(".svg").name
+            if self.getCanvasSVG(source, title=target.stem, description=f"Glyph canvas export: {name}") is None:
+                return []
+            viewbox = [float(n) for n in ET.parse(source).getroot().attrib["viewBox"].replace(",", " ").split()]
+            if len(viewbox) != 4 or not all(math.isfinite(n) for n in viewbox) or min(viewbox[2:]) <= 0:
+                raise ValueError("Canvas SVG requires a finite positive viewBox")
+            record = self._exportRecord(target, "canvas-export", viewbox[2:])
+            record["extensions"].update(source_viewBox=viewbox, representation="native workspace vector export",
+                frame_mapping={"source_origin": viewbox[:2], "logical_size": viewbox[2:], "raster_scale": None})
+            if "png" in formats:
+                record["pixels"] = [math.ceil(n) for n in viewbox[2:]]
+                record["dpr"] = 1.0
+                record["extensions"]["frame_mapping"]["raster_scale"] = [record["pixels"][i] / viewbox[i + 2] for i in (0, 1)]
+            self._bundle_base, self._bundle_record = source, record
+            try:
+                embed_svg(source, record)
+                paths = []
+                if "png" in formats:
+                    png = source.with_suffix(".png")
+                    if self._renderCanvasPNG(source, png) is None:
+                        return []
+                    paths.append(png)
+                if "svg" in formats:
+                    paths.append(source)
+                return self._publishBundle(target, paths, record)
+            finally:
+                del self._bundle_base
+                del self._bundle_record
 
     @with_capture_preferences
     def grabCanvas(self) -> Any:
         paths = []
-
-        if self.pref.grab_svg:
-            grab_path = self.getGrabPath("gc", "svg")
-            if path := self.getCanvasSVG(
-                grab_path,
-                title=grab_path.stem,
-                description=f"Glyph canvas: {grab_path.stem}",
-            ):
-                paths.append(path)
-            with alternative_view(self.app.ui.menu.view.alternative_view):
-                grab_path = self.getGrabPath("gca", "svg")
-                if path := self.getCanvasSVG(
-                    grab_path,
-                    title=grab_path.stem,
-                    description=f"Glyph canvas alternative: {grab_path.stem}",
-                ):
-                    paths.append(path)
-
-        if self.dark:
-            self.app.pref.generalDarkGlyph = not self.app.pref.generalDarkGlyph
-
-        if self.pref.grab_svg:
-            grab_path = self.getGrabPath("gd", "svg")
-            if path := self.getCanvasSVG(
-                grab_path,
-                title=grab_path.stem,
-                description=f"Glyph dark canvas: {grab_path.stem}",
-            ):
-                paths.append(path)
-            with alternative_view(self.app.ui.menu.view.alternative_view):
-                grab_path = self.getGrabPath("gad", "svg")
-                if path := self.getCanvasSVG(
-                    grab_path,
-                    title=grab_path.stem,
-                    description=f"Glyph dark canvas alternative: {grab_path.stem}",
-                ):
-                    paths.append(path)
-
-        if self.dark:
-            self.app.pref.generalDarkGlyph = not self.app.pref.generalDarkGlyph
-
+        original_dark = self.app.pref.generalDarkGlyph
+        for name, alternative, dark in (("gc", False, False), ("gca", True, False), ("gd", False, True), ("gad", True, True)):
+            if self.dark:
+                self.app.pref.generalDarkGlyph = not original_dark if dark else original_dark
+            if alternative and (self.pref.grab_svg or self.pref.grab_png):
+                with alternative_view(self.app.ui.menu.view.alternative_view):
+                    paths.extend(self._grabCanvasBundle(name))
+            else:
+                paths.extend(self._grabCanvasBundle(name))
+        self.app.pref.generalDarkGlyph = original_dark
         if self.pref.grab_pdf:
             grab_path = self.getGrabPath("gc", "pdf")
             if path := self.getCanvasPDF(grab_path):
@@ -406,7 +548,7 @@ class Grab(object):
     def grabMenu(self, menu: Any, text: Any) -> Any:
         paths = []
         paths.extend(self.grabWidget(menu, "m", text, f"Menu: {text}"))
-        for action in menu.actions():
+        for action in native_list(menu, "actions"):
             if action.isVisible() and action.menu():
                 name = f"{slugify(text)}_{slugify(action.text)}"
                 paths.extend(self.grabMenu(action.menu(), name))
@@ -414,7 +556,7 @@ class Grab(object):
 
     def grabMainMenu(self) -> Any:
         paths = []
-        for qmenu in self.app.ui.qmenus.children():
+        for qmenu in native_list(self.app.ui.qmenus, "children"):
             if isinstance(qmenu, QMenu):
                 name = f"{slugify(qmenu.title)}"
                 paths.extend(self.grabMenu(qmenu, name))
