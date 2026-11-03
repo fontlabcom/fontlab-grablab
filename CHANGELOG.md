@@ -2,6 +2,14 @@
 this_file: CHANGELOG.md
 ---
 
+## 2026-11-03 — install.vfpy creates FontLab's venv
+
+FontLab's `python/3.11/site-packages` is now always a real folder; packages are
+symlinked into it, so no `.pth` processing is needed. `install.vfpy` creates `.venv` with
+uv from FontLab's exact Python version and processor type, and links the venv's
+site-packages to FontLab's folder, so `uv pip install --python .venv/bin/python` installs
+into FontLab. An older layout (FontLab's folder linked into `.venv`) is migrated.
+
 ## 2026-11-03 — reverse-domain extension id and install.log
 
 `[tool.fontlab-install] id = "com.fontlab.grablab"` names this extension. `install.vfpy` keeps
