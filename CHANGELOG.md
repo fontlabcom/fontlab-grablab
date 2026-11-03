@@ -2,6 +2,10 @@
 this_file: CHANGELOG.md
 ---
 
+## 2026-11-03 — fixes from runs inside FontLab 9
+
+- The SVG asset manifest is read as UTF-8 (FontLab's Python defaults to ASCII).
+
 ## 2026-11-03 — installer options, licence and cleanup
 
 - `install.vfpy` reads optional `[tool.fontlab-install]` keys: `name` (the distribution

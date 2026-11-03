@@ -77,7 +77,7 @@ def build_raster_index(
         "sources": [],
     }
     names: dict = {}
-    for asset in json.loads(manifest.read_text())["assets"]:
+    for asset in json.loads(manifest.read_text(encoding="utf-8"))["assets"]:
         files = asset["files"]
         vector = (manifest.parent / files["svg"]["path"]).resolve()
         if not vector.is_file():
