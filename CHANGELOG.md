@@ -4,6 +4,13 @@ this_file: CHANGELOG.md
 
 # Changelog
 
+## 2026-11-03 — Issue 201 audit
+
+- No file removed: every tracked file is referenced by code, tests, packaging or docs (evidence in the
+  workspace `verification/issue-201/task-15-report.md`). Imports of `fontlabapp` (`Application`,
+  `utils.attribdict/slugify/timestamp`, `application.preflib`) resolve in the issue-201 App.
+  Removed a stale AGENTS.md sentence about a README `--python 3.12`.
+
 ## 2026-10-26 — icon representation modes
 
 - Add host-free base64, PNG URL, SVG URL and default inline SVG processing,
