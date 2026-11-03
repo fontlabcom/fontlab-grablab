@@ -11,3 +11,4 @@ uv.lock
 **/.omc/
 .superpowers/
 .worktrees/
+*.vfpyc

@@ -2,6 +2,23 @@
 this_file: CHANGELOG.md
 ---
 
+## 2026-11-03 — install.vfpy fixes from runs inside FontLab 9
+
+Verified by installing all nine packages inside FontLab 9 (Python 3.11.6, arm64).
+- Dependencies with console scripts (glyphsLib, fontTools) failed: uv writes them to
+  `site-packages/../../../bin`, which resolves through the venv link to the FontLab
+  folder. `bin`, `share` and `include` there now link back into `.venv`.
+- A failed install appends a `"failed"` record with the traceback and uv's output to
+  `install.log`; List/Uninstall ignore failed records.
+- Package records include `WHEEL`, so `uv pip check` accepts them.
+- Scripts are copied file by file into FontLab's `Scripts` folder, from a package's
+  `Scripts/` folder (exact case) and from folders listed in `[tool.fontlab-install] scripts`.
+  Folders shared by several packages merge, e.g. two packages' `Scripts/Kerning`. The
+  installer refuses to overwrite a file another package or the user put there; uninstall
+  removes only its own files, their `.pyc`, and folders left empty. An older install's
+  folder link (`Scripts/Aidus Code`) is replaced by copied files.
+- `*.vfpyc` (FontLab's compiled `install.vfpy`) is ignored by Git.
+
 ## 2026-11-03 — install.vfpy creates FontLab's venv
 
 FontLab's `python/3.11/site-packages` is now always a real folder; packages are
