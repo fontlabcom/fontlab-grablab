@@ -2,6 +2,13 @@
 this_file: CHANGELOG.md
 ---
 
+## 2026-11-03 — install.vfpy without uv
+
+`install.vfpy` now needs only FontLab's Python. It asks FontLab for its data folder
+(`flPreferences().dataPathDefault`), links a Git checkout or copies a plain folder into
+`Extensions/`, and writes a `.pth` plus `.dist-info` into `python/3.11/site-packages`.
+uv is used only to add missing dependencies. It never replaces folders it does not own.
+
 ## 2026-11-03 — release scripts
 
 Added `build.sh` (uv build into dist/), `publish.sh` (`uv publish`; refuses a dirty

@@ -1,61 +1,210 @@
 #FLM: Install this package into FontLab
 # this_file: install.vfpy
-"""Install the package in this folder into FontLab's Python, as an editable install.
+"""Install the Python package in this folder into FontLab 9. Standard library only.
 
-Open this file in FontLab 9 (Scripts > Open Script, or drag it onto the
-Scripting panel) and run it. It needs uv: https://docs.astral.sh/uv/
+Open this file in FontLab 9 (double-click it, or drop it onto FontLab). It reads
+pyproject.toml beside it and installs into FontLab's user data folder, as
+reported by FontLab itself (fontlab.flPreferences().dataPathDefault):
 
-Target, in order of preference:
-1. the venv created by setup_venv.sh in the FontLab user folder;
-2. otherwise FontLab's own python/3.11/site-packages folder (plain copy install).
-Restart FontLab afterwards so the new modules load.
+- Git checkout: links the source (editable; later pulls are live after a restart).
+- Plain folder (e.g. a downloaded ZIP): copies the package into
+  Extensions/<name>/, so the download can be deleted afterwards.
+
+Either way a .pth file and a .dist-info record go into python/3.11/site-packages,
+so `import` and importlib.metadata work. Folders listed in pyproject.toml under
+[tool.fontlab-install] scripts = [...] are linked or copied into Scripts/.
+Missing dependencies are installed with uv (https://docs.astral.sh/uv/) when it
+is available; otherwise they are listed. Restart FontLab afterwards.
 """
+import json
 import os
+import re
 import shutil
 import subprocess
 import sys
+import tomllib
+import uuid
+from importlib import metadata
+from pathlib import Path
 
-REPO = os.path.dirname(os.path.abspath(__file__))
+SOURCE = Path(__file__).resolve().parent
+MARKER = ".fontlab-install.json"  # marks folders this installer owns
+IGNORE = shutil.ignore_patterns("__pycache__", "*.pyc", ".DS_Store", "tests", "stubs")
 UV_CANDIDATES = ("~/.local/bin/uv", "~/.cargo/bin/uv", "/opt/homebrew/bin/uv", "/usr/local/bin/uv")
 
 
+def data_dir():
+    # Same lookup as FontLab's Scripts panel: honours redirected Windows Documents.
+    import fontlab
+
+    value = fontlab.flPreferences().dataPathDefault
+    value = value() if callable(value) else value
+    if not value:
+        raise RuntimeError("FontLab did not report its user data folder.")
+    return Path(str(value)).expanduser().resolve()
+
+
+def norm(name):
+    return re.sub(r"[-_.]+", "_", name).lower()
+
+
+def version(project):
+    pkg_info = SOURCE / "PKG-INFO"  # present in an unpacked sdist
+    if pkg_info.is_file():
+        for line in pkg_info.read_text(encoding="utf-8").splitlines():
+            if line.startswith("Version: "):
+                return line[9:].strip()
+    try:
+        out = subprocess.run(
+            ["git", "-C", str(SOURCE), "describe", "--tags", "--long", "--match", "v[0-9]*.[0-9]*.[0-9]*"],
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, universal_newlines=True, timeout=20, check=True,
+        ).stdout.strip()
+        tag, distance, sha = out.rsplit("-", 2)
+        return tag[1:] if distance == "0" else "%s+%s.%s" % (tag[1:], distance, sha)
+    except (OSError, ValueError, subprocess.SubprocessError):
+        options = project.get("tool", {}).get("hatch", {}).get("version", {}).get("raw-options", {})
+        return options.get("fallback_version", "0.0.0")
+
+
+def package_dirs(project):
+    """Import packages of the wheel: [tool.hatch.build.targets.wheel] packages."""
+    wheel = project.get("tool", {}).get("hatch", {}).get("build", {}).get("targets", {}).get("wheel", {})
+    dirs = [SOURCE / p for p in wheel.get("packages", [])]
+    if not dirs or not all((d / "__init__.py").is_file() for d in dirs):
+        raise RuntimeError("pyproject.toml must list the wheel packages, each with __init__.py.")
+    return dirs
+
+
+def check_target(path):
+    """Refuse to replace anything this installer did not create."""
+    if path.is_symlink() or not path.exists():
+        return
+    if not (path / MARKER).is_file():
+        raise RuntimeError("Refusing to replace a folder this installer does not manage: %s" % path)
+
+
+def replace_dir(stage, target):
+    """Swap a fully prepared folder into place; nothing changes if staging failed."""
+    check_target(target)
+    old = target.with_name(".%s.old-%s" % (target.name, uuid.uuid4().hex[:8]))
+    if target.is_symlink():
+        target.unlink()
+    elif target.exists():
+        os.replace(str(target), str(old))
+    os.replace(str(stage), str(target))
+    shutil.rmtree(str(old), ignore_errors=True)
+
+
+def copy_tree(sources, target, record):
+    """Copy folders into target via a staging folder, after compiling all Python."""
+    stage = target.with_name(".%s.new-%s" % (target.name, uuid.uuid4().hex[:8]))
+    try:
+        stage.mkdir(parents=True)
+        for src in sources:
+            if src.is_dir():
+                shutil.copytree(str(src), str(stage / src.name), ignore=IGNORE)
+            elif not IGNORE(str(src.parent), [src.name]):
+                shutil.copy2(str(src), str(stage / src.name))
+        for path in stage.rglob("*.py"):
+            compile(path.read_bytes(), str(path), "exec")
+        (stage / MARKER).write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+        replace_dir(stage, target)
+    finally:
+        shutil.rmtree(str(stage), ignore_errors=True)
+
+
+def link_dir(source, target):
+    if target.is_symlink() and target.resolve() == source.resolve():
+        return
+    check_target(target)
+    stage = target.with_name(".%s.link-%s" % (target.name, uuid.uuid4().hex[:8]))
+    os.symlink(str(source), str(stage), target_is_directory=True)
+    replace_dir(stage, target)
+
+
+def write_record(site, name, ver, roots, requires):
+    """Write <name>.pth plus a minimal .dist-info, replacing any older install of name."""
+    key = norm(name)
+    old_pth = [site / ("_%s.pth" % key), site / ("_editable_impl_%s.pth" % key)]  # ours, uv editable
+    for old in list(site.glob(key + "-*.dist-info")) + [p for p in old_pth if p.exists()]:
+        shutil.rmtree(str(old)) if old.is_dir() else old.unlink()
+    pth = site / ("_%s.pth" % key)
+    pth.write_text("".join(str(r) + "\n" for r in roots), encoding="utf-8")
+    info = site / ("%s-%s.dist-info" % (key, ver))
+    info.mkdir()
+    lines = ["Metadata-Version: 2.1", "Name: " + name, "Version: " + ver]
+    lines += ["Requires-Dist: " + r for r in requires]
+    (info / "METADATA").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (info / "INSTALLER").write_text("install.vfpy\n", encoding="utf-8")
+    files = [pth.name] + [info.name + "/" + f for f in ("METADATA", "INSTALLER", "RECORD")]
+    (info / "RECORD").write_text("".join(f + ",,\n" for f in files), encoding="utf-8")
+
+
+def missing(requires):
+    # shortcut: checks presence only, not version ranges; uv enforces ranges when it installs.
+    result = []
+    for req in requires:
+        try:
+            metadata.distribution(re.match(r"[A-Za-z0-9._-]+", req).group())
+        except metadata.PackageNotFoundError:
+            result.append(req)
+    return result
+
+
 def find_uv():
-    # FontLab's GUI PATH is minimal, so also try the usual install locations.
-    found = shutil.which("uv")
-    if found:
-        return found
-    for candidate in UV_CANDIDATES:
-        path = os.path.expanduser(candidate)
-        if os.path.isfile(path):
-            return path
-    raise RuntimeError("uv not found; install it from https://docs.astral.sh/uv/")
+    for candidate in (shutil.which("uv"),) + UV_CANDIDATES:  # FontLab's GUI PATH is minimal
+        if candidate and os.path.isfile(os.path.expanduser(candidate)):
+            return os.path.expanduser(candidate)
+    return None
 
 
-def fontlab_site_packages():
-    for entry in sys.path:
-        if entry.replace("\\", "/").rstrip("/").endswith("python/3.11/site-packages"):
-            return entry
-    raise RuntimeError("FontLab's python/3.11/site-packages is not on sys.path")
-
-
-def install_command(uv):
-    site_dir = fontlab_site_packages()
-    venv = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(site_dir))))
-    for python in (os.path.join(venv, "bin", "python"), os.path.join(venv, "Scripts", "python.exe")):
-        if os.path.isfile(python):
-            return [uv, "pip", "install", "--python", python, "--link-mode=copy", "-e", REPO]
-    return [uv, "pip", "install", "--python", "3.11", "--target", site_dir, REPO]
-
-
-def main():
-    command = install_command(find_uv())
-    print("Running:", " ".join(command))
+def install_dependencies(site, requires):
+    needed = missing(requires)
+    if not needed:
+        return
+    uv = find_uv()
+    if not uv:
+        print("Missing dependencies (install uv, then run this again):\n  " + "\n  ".join(needed))
+        return
+    venv = site.resolve().parents[2]  # python/3.11/site-packages -> .venv/lib/python3.11/site-packages
+    python = venv / "bin" / "python"
+    where = ["--python", str(python)] if python.is_file() else ["--python", "3.11", "--target", str(site)]
+    command = [uv, "pip", "install", "--link-mode=copy"] + where + needed
+    print("Installing dependencies: " + " ".join(command))
     result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
     print(result.stdout)
     if result.returncode:
-        print("Install FAILED (exit %d)." % result.returncode)
+        raise RuntimeError("uv could not install the dependencies (exit %d)." % result.returncode)
+
+
+def main():
+    project = tomllib.loads((SOURCE / "pyproject.toml").read_text(encoding="utf-8"))
+    name, ver = project["project"]["name"], version(project)
+    requires = project["project"].get("dependencies", [])
+    scripts = project.get("tool", {}).get("fontlab-install", {}).get("scripts", [])
+    data = data_dir()
+    site = data / "python" / ("%d.%d" % sys.version_info[:2]) / "site-packages"
+    site.mkdir(parents=True, exist_ok=True)
+    dirs = package_dirs(project)
+    editable = (SOURCE / ".git").exists()
+    if editable:
+        roots = sorted({d.parent for d in dirs})
+        for folder in scripts:
+            link_dir(SOURCE / folder, data / "Scripts" / folder)
     else:
-        print("Installed %s. Restart FontLab to load it." % os.path.basename(REPO))
+        home = data / "Extensions" / norm(name)
+        record = {"name": name, "version": ver, "source": str(SOURCE)}
+        copy_tree(dirs, home, record)
+        roots = [home]
+        for folder in scripts:
+            copy_tree(sorted((SOURCE / folder).iterdir()), data / "Scripts" / folder, record)
+    write_record(site, name, ver, roots, requires)
+    install_dependencies(site, requires)
+    loaded = [d.name for d in dirs if d.name in sys.modules]
+    print("Installed %s %s (%s) into %s" % (name, ver, "linked" if editable else "copied", site))
+    if scripts:
+        print("Scripts: " + ", ".join(scripts) + ". Use Refresh Scripts if they do not appear.")
+    print("Restart FontLab to load it." + (" Already loaded: " + ", ".join(loaded) if loaded else ""))
 
 
 main()
