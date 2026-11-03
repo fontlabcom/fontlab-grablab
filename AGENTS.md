@@ -15,7 +15,8 @@ this_file: AGENTS.md
 
 ## Commands
 
-- Setup: `uv venv --python cpython-3.11-macos-aarch64-none && uv pip install -e ../fontlab-fontlabapp -e '.[test]'` (verify with `lipo -archs`).- Tests: `./test.sh` (= `uv run --no-sync python -m pytest "$@"`; `--no-sync` means the environment above must already exist). Build: `uv build`.
+- Setup: `uv venv --python cpython-3.11-macos-aarch64-none && uv pip install -e ../fontlab-fontlabapp -e '.[test]'` (verify with `lipo -archs`).
+- Tests: `./test.sh` (= `uv run --no-sync python -m pytest "$@"`; `--no-sync` means the environment above must already exist). Build: `uv build`.
 
 ## Host rules that apply here
 
