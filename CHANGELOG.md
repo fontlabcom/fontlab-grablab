@@ -2,6 +2,14 @@
 this_file: CHANGELOG.md
 ---
 
+## 2026-11-03 — installer options, licence and cleanup
+
+- `install.vfpy` reads optional `[tool.fontlab-install]` keys: `name` (the distribution
+  record), `packages` (`[]` installs scripts only) and `dependencies` (what FontLab needs,
+  instead of `project.dependencies`). Symlinks inside `Scripts/` are not copied.
+- Relicensed under Apache-2.0 by the copyright owner (previously BSD-3-Clause). `LICENSE` now
+  holds the Apache License 2.0 text.
+
 ## 2026-11-03 — install.vfpy fixes from runs inside FontLab 9
 
 Verified by installing all nine packages inside FontLab 9 (Python 3.11.6, arm64).

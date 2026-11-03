@@ -17,9 +17,15 @@ reverse-domain form (e.g. com.fontlab.fly). FontLab reports its user data folder
   installs X straight into FontLab. Dependencies are installed this way.
 - Extensions/<id>/install.log: one JSON object per line, appended on every
   install or uninstall; the last line lists every file the install created.
-- Scripts/<folder>: folders listed in [tool.fontlab-install] scripts.
+- Scripts: files from this folder's Scripts/ (and from folders listed in
+  [tool.fontlab-install] scripts, as Scripts/<folder>) are copied in; folders
+  shared with other extensions merge, and nobody else's file is overwritten.
 - Scripts/Extensions/: "List Extensions" and "Uninstall <id>" launchers. They
   import this same file, installed as site-packages/fontlab_install.py.
+
+Optional [tool.fontlab-install] keys override pyproject values that do not fit
+FontLab: name (the distribution record), packages (folders with __init__.py;
+[] installs scripts only) and dependencies (what the scripts need in FontLab).
 
 Restart FontLab afterwards.
 """
@@ -280,9 +286,13 @@ def version(project):
         return options.get("fallback_version", "0.0.0")
 
 
-def package_dirs(project):
-    """Import packages of the wheel: [tool.hatch.build.targets.wheel] packages."""
+def package_dirs(project, config):
+    """Import packages: [tool.fontlab-install] packages, else the wheel's packages."""
     wheel = project.get("tool", {}).get("hatch", {}).get("build", {}).get("targets", {}).get("wheel", {})
+    if "packages" in config:
+        if not config["packages"]:
+            return []  # a scripts-only extension
+        wheel = config
     dirs = [SOURCE / p for p in wheel.get("packages", [])]
     if not dirs or not all((d / "__init__.py").is_file() for d in dirs):
         raise RuntimeError("pyproject.toml must list the wheel packages, each with __init__.py.")
@@ -477,11 +487,11 @@ def main():
     ext_id, scripts = config.get("id", ""), config.get("scripts", [])
     if not ID_PATTERN.match(ext_id):
         raise RuntimeError("pyproject.toml needs [tool.fontlab-install] id = \"com.example.name\".")
-    name, ver = project["project"]["name"], version(project)
+    name, ver = config.get("name", project["project"]["name"]), version(project)
     data = data_dir()
     home = extension_home(data, ext_id)
     try:
-        install(project, data, home, ext_id, scripts, name, ver)
+        install(project, config, data, home, ext_id, scripts, name, ver)
     except Exception:
         # Keep the reason where List/Uninstall and people can find it; FontLab's Output may be closed.
         append_log(home, {"action": "failed", "id": ext_id, "name": name, "version": ver, "time": now(),
@@ -490,14 +500,14 @@ def main():
         raise
 
 
-def install(project, data, home, ext_id, scripts, name, ver):
-    requires = project["project"].get("dependencies", [])
+def install(project, config, data, home, ext_id, scripts, name, ver):
+    requires = config.get("dependencies", project["project"].get("dependencies", []))
     site = prepare_site(data)
     uv = find_uv()
     python = ensure_venv(data, site, uv) if uv else None
     if not uv:
         print("uv not found: no venv was set up. Install uv from https://docs.astral.sh/uv/ for dependencies.")
-    dirs = package_dirs(project)
+    dirs = package_dirs(project, config)
     editable = (SOURCE / ".git").exists()
     previous = last_state(home)
     owned = set(previous["files"]) if previous and previous["action"] == "install" else set()
@@ -509,14 +519,15 @@ def install(project, data, home, ext_id, scripts, name, ver):
         remove_path(old, data)
     owned -= old_scripts  # else an old folder link's path would be swept again after the copy
     files = []
-    if editable:
+    if editable or not dirs:
         packages = dirs
     else:
         copy_tree(dirs, home / "lib", ext_id)
         packages = [home / "lib" / d.name for d in dirs]
         files.append(home / "lib")
     files += place_scripts(script_dir, pairs)
-    files += write_record(site, name, ver, packages, requires)
+    if packages:  # scripts-only extensions need no distribution record
+        files += write_record(site, name, ver, packages, requires)
     files += write_tools(data, site, ext_id)
     for stale in owned - {str(f) for f in files}:  # e.g. copied -> linked leaves lib/ behind
         remove_path(stale, data)

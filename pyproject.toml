@@ -8,7 +8,7 @@ dynamic = ["version"]
 description = "FontLab screenshot and vector export helpers"
 readme = "README.md"
 requires-python = ">=3.11"
-license = "BSD-3-Clause"
+license = "Apache-2.0"
 license-files = ["LICENSE"]
 dependencies = ["fontlab-fontlabapp>=0.1.0"]
 [project.urls]
