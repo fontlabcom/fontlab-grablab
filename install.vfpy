@@ -1,0 +1,61 @@
+#FLM: Install this package into FontLab
+# this_file: install.vfpy
+"""Install the package in this folder into FontLab's Python, as an editable install.
+
+Open this file in FontLab 9 (Scripts > Open Script, or drag it onto the
+Scripting panel) and run it. It needs uv: https://docs.astral.sh/uv/
+
+Target, in order of preference:
+1. the venv created by setup_venv.sh in the FontLab user folder;
+2. otherwise FontLab's own python/3.11/site-packages folder (plain copy install).
+Restart FontLab afterwards so the new modules load.
+"""
+import os
+import shutil
+import subprocess
+import sys
+
+REPO = os.path.dirname(os.path.abspath(__file__))
+UV_CANDIDATES = ("~/.local/bin/uv", "~/.cargo/bin/uv", "/opt/homebrew/bin/uv", "/usr/local/bin/uv")
+
+
+def find_uv():
+    # FontLab's GUI PATH is minimal, so also try the usual install locations.
+    found = shutil.which("uv")
+    if found:
+        return found
+    for candidate in UV_CANDIDATES:
+        path = os.path.expanduser(candidate)
+        if os.path.isfile(path):
+            return path
+    raise RuntimeError("uv not found; install it from https://docs.astral.sh/uv/")
+
+
+def fontlab_site_packages():
+    for entry in sys.path:
+        if entry.replace("\\", "/").rstrip("/").endswith("python/3.11/site-packages"):
+            return entry
+    raise RuntimeError("FontLab's python/3.11/site-packages is not on sys.path")
+
+
+def install_command(uv):
+    site_dir = fontlab_site_packages()
+    venv = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(site_dir))))
+    for python in (os.path.join(venv, "bin", "python"), os.path.join(venv, "Scripts", "python.exe")):
+        if os.path.isfile(python):
+            return [uv, "pip", "install", "--python", python, "--link-mode=copy", "-e", REPO]
+    return [uv, "pip", "install", "--python", "3.11", "--target", site_dir, REPO]
+
+
+def main():
+    command = install_command(find_uv())
+    print("Running:", " ".join(command))
+    result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+    print(result.stdout)
+    if result.returncode:
+        print("Install FAILED (exit %d)." % result.returncode)
+    else:
+        print("Installed %s. Restart FontLab to load it." % os.path.basename(REPO))
+
+
+main()

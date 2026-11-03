@@ -2,6 +2,12 @@
 this_file: CHANGELOG.md
 ---
 
+## 2026-11-03 — release scripts
+
+Added `build.sh` (uv build into dist/), `publish.sh` (`uv publish`; refuses a dirty
+tree or an untagged HEAD) and `install.vfpy` (editable install into FontLab's venv
+from inside FontLab). Version stays hatch-vcs from `vX.Y.Z` tags.
+
 <!-- workspace-handoff:2026-11-03 -->
 ## 2026-11-03 — documentation handoff for November 2–3
 
