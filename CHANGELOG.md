@@ -2,6 +2,13 @@
 this_file: CHANGELOG.md
 ---
 
+## 2026-11-03 — reverse-domain extension id and install.log
+
+`[tool.fontlab-install] id = "com.fontlab.grablab"` names this extension. `install.vfpy` keeps
+`Extensions/com.fontlab.grablab/install.log` (JSON Lines; the last line lists every installed file),
+puts copied code in `Extensions/com.fontlab.grablab/lib/`, and adds Scripts > Extensions >
+List Extensions and Uninstall com.fontlab.grablab.
+
 ## 2026-11-03 — install.vfpy without uv
 
 `install.vfpy` now needs only FontLab's Python. It asks FontLab for its data folder

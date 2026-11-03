@@ -27,3 +27,6 @@ only-include = ["src", "tests", "examples", "pyproject.toml", "README.md", "LICE
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+[tool.fontlab-install]
+# install.vfpy: reverse-domain id; FontLab keeps Extensions/<id>/install.log.
+id = "com.fontlab.grablab"
