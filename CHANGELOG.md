@@ -2,6 +2,23 @@
 this_file: CHANGELOG.md
 ---
 
+<!-- workspace-handoff:2026-11-03 -->
+## 2026-11-03 — documentation handoff for November 2–3
+
+No new November 2–3 runtime delivery is attributed here; historical export evidence and current access holds remain retained.
+
+No capture, export, preference change or native acceptance is implied by documentation maintenance.
+
+Observed canonical checkout: `main` at `3ebbf85b0128`. No source integration is performed by this update.
+
+Updated the requested AGENTS/TODO/PLAN/CHANGELOG/README documentation and
+recorded the paused state. Existing project text, examples and history remain;
+no runtime source, installation, native session, branch/ref, release or site was
+changed by this documentation maintenance. Source/archive/ordinary/native and
+promotion acceptance remain separate claims. Detailed workspace evidence is
+recorded in the root CHANGELOG and retained verification reports.
+<!-- /workspace-handoff -->
+
 # Changelog
 
 ## 2026-10-26 — icon representation modes

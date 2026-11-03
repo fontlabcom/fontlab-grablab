@@ -2,6 +2,16 @@
 this_file: TODO.md
 ---
 
+<!-- workspace-handoff:2026-11-03 -->
+## Current workspace handoff —2026-11-03
+
+Issue 123 is paused. No new November 2–3 runtime delivery is attributed here; historical export evidence and current access holds remain retained.
+
+No capture, export, preference change or native acceptance is implied by documentation maintenance.
+
+- [ ] Retain owned-fixture and restoration requirements before later native capture/export verification.
+<!-- /workspace-handoff -->
+
 # Tasks
 
 - [x] Add and verify base64, png-url, svg-url and default inline-svg modes, actual CLI/wheel integration, source-exact artifacts, all eight capture runs and browser embedding limits.

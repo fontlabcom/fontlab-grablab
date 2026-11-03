@@ -2,6 +2,20 @@
 this_file: PLAN.md
 ---
 
+<!-- workspace-handoff:2026-11-03 -->
+## Current workspace handoff —2026-11-03
+
+**Implementation paused.** FontLab-owned capture/export tools.
+
+Observed canonical checkout: `main` at `3ebbf85b0128`. No source integration is performed by this update.
+
+No new November 2–3 runtime delivery is attributed here; historical export evidence and current access holds remain retained.
+
+No capture, export, preference change or native acceptance is implied by documentation maintenance.
+
+1. Retain owned-fixture and restoration requirements before later native capture/export verification.
+<!-- /workspace-handoff -->
+
 # Plan
 
 The four-mode icon follow-up is implemented and verified:141package tests,

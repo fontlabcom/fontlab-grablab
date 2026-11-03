@@ -1,0 +1,27 @@
+{
+  "source_repository": "https://github.com/fontlabcom/getgo-fonts",
+  "license": "CC0-1.0",
+  "fonts": [
+    {
+      "file": "plum-var.vfj",
+      "source": "getgo-fonts/cc0/plum/plum-var.vfj",
+      "sha256": "f4ab33f1ebe1325fd945090fb9867a95f8adde11a79aa8237faccae32b4be4a9",
+      "bytes": 903459,
+      "glyphs": 205
+    },
+    {
+      "file": "veni.vfj",
+      "source": "getgo-fonts/cc0/veni/veni.vfj",
+      "sha256": "31e0104a30579977ec9323ba2fde3dee8ca0697703c2dd68d46f208201d7fc73",
+      "bytes": 391298,
+      "glyphs": 197
+    },
+    {
+      "file": "ocra.vfj",
+      "source": "getgo-fonts/cc0/ocra/ocra.vfj",
+      "sha256": "251464b8cc1644b9dad0bb4d6f2989ae47d74197a9d9519cbdeeae7c38f75498",
+      "bytes": 359285,
+      "glyphs": 177
+    }
+  ]
+}

@@ -4,7 +4,7 @@ this_file: README.md
 
 # GrabLab
 
-Install `fontlab-grablab` for the `grablab` namespace, alongside `fontlab-fontlabapp`. Python 3.11+ and native FontLab
+Install `fontlab-grablab` for the `grablab` namespace, alongside `fontlab-fontlabapp`. Python 3.11+ and native FontLab **Workspace handoff (2026-11-03):** Issue 123 development is paused. No new November 2–3 runtime delivery is attributed here; historical export evidence and current access holds remain retained. No capture, export, preference change or native acceptance is implied by documentation maintenance.
 APIs are required for capture. Importing `grablab` itself is host-free; requesting Grab loads native APIs.
 
 ```python

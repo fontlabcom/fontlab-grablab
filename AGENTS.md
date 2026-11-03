@@ -2,6 +2,23 @@
 this_file: AGENTS.md
 ---
 
+<!-- workspace-handoff:2026-11-03 -->
+## Workspace documentation handoff —2026-11-03
+
+Issue 123 implementation is paused by the owner. The present request authorizes
+only documentation maintenance; preserve all source, owner edits and branch state.
+FontLab-owned capture/export tools. Observed canonical checkout: `main` at `3ebbf85b0128`. No source integration is performed by this update.
+
+No new November 2–3 runtime delivery is attributed here; historical export evidence and current access holds remain retained.
+
+No capture, export, preference change or native acceptance is implied by documentation maintenance.
+
+Read workspace AGENTS/DECISIONS and local project guidance before later work.
+Use direct execution unless a new request explicitly authorizes agents. Product
+work stays isolated; this docs-only request does not authorize native actions,
+installs, merges, pushes, releases, generated-site updates or legacy retirement.
+<!-- /workspace-handoff -->
+
 # Agent guidance: fontlab-grablab
 
 `grablab`: screenshot, widget/canvas SVG and PDF capture helpers for FontLab. Read the workspace AGENTS.md and DECISIONS.md first; this file adds repo rules only.
