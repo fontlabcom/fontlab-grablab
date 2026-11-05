@@ -2,39 +2,26 @@
 this_file: PLAN.md
 ---
 
-<!-- workspace-handoff:2026-11-03 -->
-## Current workspace handoff —2026-11-03
+# Forward plan
 
-**Implementation paused.** FontLab-owned capture/export tools.
+Issue 230 reconciliation is current. Issue 123 implementation remains paused; its acceptance backlog below is preserved, not resumed. Keep qualified Issue 207 candidates distinct from canonical source, ordinary installed artifacts, native acceptance and publication. Issue 210 defines the future plugin split; Issue 211 retains follow-up checks. The owner corrected the preparation catalogue reference to Issue 214.
 
-Observed canonical checkout: `main` at `3ebbf85b0128`. No source integration is performed by this update.
+## Remaining native integration
 
-No new November 2–3 runtime delivery is attributed here; historical export evidence and current access holds remain retained.
+The Issue 131 screenshot and four-mode icon deliveries have dated, bounded receipts in CHANGELOG and WORK. Do not repeat them as unfinished implementation tasks.
 
-No capture, export, preference change or native acceptance is implied by documentation maintenance.
+Qualify whole-desktop capture, every panel/window configuration and dialog global-state restoration. Qualify the separate Issue 122 App smoke against the matching installed cohort. Use owned fixtures through the workspace native runner, with preference/content restoration and retained failure receipts. Offline tests cannot close native items.
 
-1. Retain owned-fixture and restoration requirements before later native capture/export verification.
-<!-- /workspace-handoff -->
+Keep whole-desktop/all-configurations/custom-widget reconstruction separate from accepted paired Font/Glyph-window, panel, metadata and six-style compositions. Preserve ambiguous raster content, image-only returns, runtime JSON/UI sidecars and explicit `restyle=True` font/stroke substitution. URL modes must retain named resources and disclose external-image styling/embedding limits. The owner's font creation/export waiver and absence of icon-font use remain part of the historical acceptance boundary, not an instruction to create fonts now.
 
-# Plan
+## Provider and distribution maintenance
 
-The four-mode icon follow-up is implemented and verified:141package tests,
-48actual-wheel tool tests, source-exact ordinary466d986artifacts,156real SVG
-documents in Chrome156,24gallery previews and12embedding controls.
-URL modes preserve named resources and disclose external-image styling/embedding
-limits. Existing native capture code is byte-identical; no native rerun is needed
-for this host-free extension. Workspace verification/issue-131/icon-modes-audit.md
-records the current evidence and delivery.
+Recheck current App imports and every caller before provider migration. Qualify genuine matching wheel/sdist origins, complete payload/privacy/licence checks and relevant native capture behavior only when those bytes change. Preserve legacy recovery provenance and the original failure receipts. Do not claim a new full screenshot/native acceptance from the docs change.
 
+## Development checks
 
-Issue 131 capture/SVG work is implemented and reviewed. Ordinary wheel and sdist
-runtime bytes match source90c1842; 122 installed-wheel tests pass. FontLab9794
-owned Font/Glyph-window, canvas and panel captures verify metadata and preference
-restoration. Actual six composed SVG variations pass browser and visual checks.
-The owner's later correction waives font creation/export and icon-font use.
-Workspace verification/issue-131/requirements-audit.md records acceptance limits.
+Run `uv venv --python cpython-3.11-macos-aarch64-none`, then `uv pip install -e ../fontlab-fontlabapp -e ".[test,svg]"`, then `./test.sh`. The wrapper uses `--no-sync`, so prepare the environment first. Build with `uv build`.
 
-Remaining integration work predates and exceeds this bounded screenshot delivery:
-whole-desktop capture, every panel/window configuration, dialog global-state
-restoration, and the separate issue122 App smoke. Use owned fixtures through
-verification/issue-104/fl-native.sh; offline tests cannot close native items.
+## Review, integration and cleanup
+
+Use the detailed open tasks in [TODO.md](TODO.md) as the acceptance checklist. Complete one scoped MVP, then run the exact repository checks and unchanged 80% gate for each complete changed production module. Keep source, genuine artifacts, ordinary origins and native behavior separate. Obtain independent review before a milestone commit/push and verify the actual remote head. Reconcile concurrent source and all callers before main integration. Preserve recovery/unique work and fresh owner/worktree attachments before obsolete branch/file cleanup. Update TODO/PLAN and record only scoped verified results in CHANGELOG. Do not drive the owner's FontLab, install into its user folder or publish a site from this proposal.

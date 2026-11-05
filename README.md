@@ -2,9 +2,25 @@
 this_file: README.md
 ---
 
+## Development status — 2026-11-05
+
+Canonical source inspected for this proposal: `91a03a858f50`. This is a dated source observation, not an installed or native acceptance claim.
+
+Keep capture and SVG/icon modes aligned with reviewed App APIs and current supported native bindings.
+
+Qualify genuine distributions and owned native capture/rendering separately; preserve archived source and existing input provenance.
+
+## Repository and development
+
+`src/` holds capture utilities; `examples/` shows their use; `tests/` covers offline behavior; `legacy/` retains recovery inputs.
+
+Run `uv venv --python cpython-3.11-macos-aarch64-none`, then `uv pip install -e ../fontlab-fontlabapp -e ".[test,svg]"`, then `./test.sh`. The wrapper uses `--no-sync`, so prepare the environment first. Build with `uv build`.
+
+Keep runtime, ordinary installed artifacts, native workflows and published documentation as separate acceptance results. Track open checks in [TODO.md](TODO.md), the implementation route in [PLAN.md](PLAN.md), and dated evidence in [CHANGELOG.md](CHANGELOG.md).
+
 # GrabLab
 
-Install `fontlab-grablab` for the `grablab` namespace, alongside `fontlab-fontlabapp`. Python 3.11+ and native FontLab **Workspace handoff (2026-11-03):** Issue 123 development is paused. No new November 2–3 runtime delivery is attributed here; historical export evidence and current access holds remain retained. No capture, export, preference change or native acceptance is implied by documentation maintenance.
+Install `fontlab-grablab` for the `grablab` namespace, alongside `fontlab-fontlabapp`. Python 3.11+ and native FontLab
 APIs are required for capture. Importing `grablab` itself is host-free; requesting Grab loads native APIs.
 
 ```python

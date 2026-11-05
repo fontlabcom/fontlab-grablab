@@ -2,6 +2,47 @@
 this_file: CHANGELOG.md
 ---
 
+## 2026-11-05 — independently approved documentation applied
+
+[Task 2 final review](../verification/issue-230/task-2-fix2-review.md) records
+SPEC PASS / QUALITY APPROVED. The [78-file application receipt](../verification/issue-230/task-2-apply.json)
+includes this repository's six guides and preserves all 21 repository heads,
+branches, indexes and non-selected diffs. This is applied documentation evidence,
+not a new product test, installed artifact, native result or publication.
+
+The complete earlier handoff/history below retains its proposal-stage statements
+and dated source pins. Later review, application and delivery status belong in the
+[live workspace ledger](../verification/issue-230/progress.md). Original future,
+native, artifact and preservation contracts remain binding.
+
+## 2026-11-05 — documentation reconciliation proposal
+
+Prepared repository-specific organization, test and MVP/delivery guidance from current source/test configuration and retained Issue 207–211 evidence. Distinguished current canonical layout from qualified candidates, future plugin ownership and unfinished native/artifact gates. Preserved all prior work and changelog evidence; no runtime completion, installation or publication is claimed. Completed historical task rows were removed from the active checklist and consolidated below from existing local CHANGELOG/WORK receipts. Unfinished native, artifact and integration checks remain open.
+
+## Retained scoped completion receipts — corrected evidence map
+
+These are dated results at the stated source/version and acceptance surface. They do not establish current integrated, installed, native or published acceptance. Full receipts and hashes are indexed in the workspace Issue 230 task-2 manifest. Canonical-preimage line ranges below refer to the unchanged historical documents, before these new entries.
+
+- Four-mode icon follow-up:141package tests;48actual-wheel tool tests;466d986 source/artifact identity;156SVG/24gallery/12embedding checks.
+  Historical receipt: WORK.md:5–41.
+
+- Issue131 paired widget/runtime metadata implementation;source90c1842;122 full/installed tests;85.09/94.93/95.68% changed-module coverage.
+  Historical receipt: CHANGELOG.md:235–255; WORK.md:431–452.
+
+- Issue1310.2.1.dev18+g90c1842e6:ordinary parity/122 installed tests;owned native captures/preferences and6 browser variants;owner font creation/export waiver.
+  Historical receipt: WORK.md:431–459.
+
+- Issue1310.2.1.dev18+g90c1842e6:composed Font/Glyph captures and six vector/mono/wireframe variants reviewed;ambiguous rasters retained.
+  Historical receipt: WORK.md:431–459.
+
+## 2026-11-05 — planning chronology reconciliation
+
+Four-mode icon source466d986 and paired screenshot source90c1842 are bounded verified deliveries, not current implementation tasks. Whole-desktop/all-configurations/dialog restoration/Issue122Appsmoke remain open, with owner font creation/export waiver intact. Historical passing results retain their dated source and acceptance scope in the entries above and original history below. This documentation change creates no new runtime acceptance.
+
+---
+this_file: CHANGELOG.md
+---
+
 ## 2026-11-03 — fixes from runs inside FontLab 9
 
 - The SVG asset manifest is read as UTF-8 (FontLab's Python defaults to ASCII).
