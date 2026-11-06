@@ -359,8 +359,9 @@ def test_grab_all_aggregates_image_lists_and_keeps_enabled_callers(
     assert called == (list(methods.values()) if enabled else [])
 
 
+@pytest.mark.parametrize("viewport_shape", ["direct", "named", "missing"])
 def test_widget_callers_keep_panel_parents_window_filtering_and_bundle_returns(
-    grab, monkeypatch
+    grab, monkeypatch, viewport_shape
 ):
     calls = []
 
@@ -374,7 +375,16 @@ def test_widget_callers_keep_panel_parents_window_filtering_and_bundle_returns(
     )
     hidden = widget("QLabel", visible=False)
     glyph = widget("GlyphWindow")
-    glyph.widgetViewport = widget("Viewport")
+    viewport = widget("Viewport")
+    viewport.objectName = "widgetViewport"
+    if viewport_shape == "direct":
+        glyph.widgetViewport = viewport
+    gui = sys.modules["PythonQt.QtGui"]
+    monkeypatch.setattr(gui, "QWidget", type("QWidget", (), {}), raising=False)
+    monkeypatch.setitem(sys.modules, "PythonQt", types.SimpleNamespace(QtGui=gui))
+    other = widget("Other")
+    other.objectName = "other"
+    glyph.findChildren = lambda cls: [other] if viewport_shape == "missing" else [other, viewport]
     grab.pref.grab_also_invisible = False
     grab.app.ui = types.SimpleNamespace(
         panels={
@@ -395,7 +405,26 @@ def test_widget_callers_keep_panel_parents_window_filtering_and_bundle_returns(
     monkeypatch.setattr(grab, "grabWidget", capture)
     assert len(grab.grabPanels()) == 2 and calls[0][0].className() == "YPanel"
     assert len(grab.grabPanel("hidden", force_visible=True)) == 2
-    assert len(grab.grabGlyphWindows()) == 4 and len(grab.grabFontWindows()) == 2
+    calls.clear()
+    before = vars(grab.app.pref).copy()
+    if viewport_shape == "missing":
+        with pytest.raises(LookupError, match="no widgetViewport child"):
+            grab.grabGlyphWindows()
+        assert calls == [] and vars(grab.app.pref) == before
+        return
+    from fontlabapp.qt.views import GlyphWindow
+    assert sys.modules["grablab.grab"].GlyphWindow is GlyphWindow
+    expected = [Path("a_font.png"), Path("a_font.svg")] * 2
+    assert grab.grabGlyphWindows() == expected
+    assert calls == [(viewport, "gv"), (glyph, "gw")]
+    hidden.widgetViewport = widget("HiddenViewport")
+    grab.pref.grab_also_invisible = True
+    calls.clear()
+    assert grab.grabGlyphWindows() == expected + [Path("hidden.png"), Path("hidden.svg")] * 2
+    assert calls == [(viewport, "gv"), (glyph, "gw"), (hidden.widgetViewport, "gv"), (hidden, "gw")]
+    grab.pref.grab_also_invisible = False
+    assert len(grab.grabFontWindows()) == 2
+    assert vars(grab.app.pref) == before
 
 
 def test_new_capture_folder_preserves_font_naming_policy(grab, monkeypatch, tmp_path):
@@ -453,3 +482,26 @@ def test_invalid_screen_geometry_fails_before_capture(grab):
     with pytest.raises(ValueError, match="geometry"):
         grab.grabScreens()
     assert captured["calls"] == 0
+
+
+def test_named_viewport_capture_failure_restores_preferences(grab, monkeypatch):
+    from test_snapshot import widget
+    viewport = widget()
+    viewport.objectName = "widgetViewport"
+    glyph = types.SimpleNamespace(visible=True, findChildren=lambda cls: [viewport])
+    gui = sys.modules["PythonQt.QtGui"]
+    monkeypatch.setattr(gui, "QWidget", type("QWidget", (), {}), raising=False)
+    monkeypatch.setitem(sys.modules, "PythonQt", types.SimpleNamespace(QtGui=gui))
+    grab.app.ui = types.SimpleNamespace(glyphWindows=lambda: {"Font @ A": glyph})
+    grab.pref.grab_also_invisible = False
+    before = vars(grab.app.pref).copy()
+
+    def fail(*args):
+        assert grab.app.pref.developerOpenGL is False
+        raise RuntimeError("owned viewport save failure")
+
+    monkeypatch.setattr(grab, "grabWidgetPNG", fail)
+    with pytest.raises(RuntimeError, match="owned viewport save failure"):
+        grab.grabGlyphWindows()
+    assert vars(grab.app.pref) == before
+    assert list(grab.grab_folder.iterdir()) == []

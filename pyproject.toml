@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
-dependencies = ["fontlab-fontlabapp>=0.1.0"]
+dependencies = ["fontlab-fontlabapp>=1.2.0"]
 [project.urls]
 Repository = "https://github.com/fontlabcom/fontlab-grablab"
 [project.optional-dependencies]
@@ -23,10 +23,14 @@ fallback_version = "0.1.0"
 [tool.hatch.build.targets.wheel]
 packages = ["src/grablab"]
 [tool.hatch.build.targets.sdist]
-only-include = ["src", "tests", "examples", "pyproject.toml", "README.md", "LICENSE", "MIGRATION.json", "CHANGELOG.md", "DEPENDENCIES.md", "test.sh"]
+only-include = ["Scripts", "install.vfpy", "src", "tests", "examples", "pyproject.toml", "README.md", "LICENSE", "MIGRATION.json", "CHANGELOG.md", "DEPENDENCIES.md", "test.sh"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
 [tool.fontlab-install]
 # install.vfpy: reverse-domain id; FontLab keeps Extensions/<id>/install.log.
 id = "com.fontlab.grablab"
+dependencies = [
+  "fontlab-fontlabapp>=1.2.0",
+  "pyobjc-framework-Quartz>=10; sys_platform == 'darwin'",
+]

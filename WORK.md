@@ -21,7 +21,7 @@ Issue 230 documentation reconciliation is current. Issue 123 remains paused. The
 
 Canonical source inspected for this proposal: `91a03a858f50`. This is a dated source observation, not an installed or native acceptance claim.
 
-`src/` holds capture utilities; `examples/` shows their use; `tests/` covers offline behavior; `legacy/` retains recovery inputs.
+`src/` holds capture utilities; `examples/` shows their use; `tests/` covers offline behavior. `MIGRATION.json` records `legacy/source.tar.gz` at immutable Git revision `e74a8abc3888f2b829c2d3702f0b1f7fbeb6c0cb`; that path is historical, absent from the current tree and both distributions.
 
 Next: Keep capture and SVG/icon modes aligned with reviewed App APIs and current supported native bindings. Qualify genuine distributions and owned native capture/rendering separately; preserve archived source and existing input provenance.
 
@@ -490,3 +490,42 @@ issue131/artifact-90c1842.json, screenshots-browser-90c1842/report.json.
 Historical failed attempts remain retained. Font creation/export is waived;
 the icon font was not used. Whole-desktop, all configurations and complete
 custom-widget reconstruction are not claimed.
+
+
+## 2026-11-06 — bounded source reconciliation candidate
+
+At source base `5ed8d375`, the viewport regression first failed for named and
+missing children (2 failed/1 passed); declaration/installer regressions first
+failed four controls (1 passed). Reused the qualified ordinary App adapter and
+restored App >=1.2.0 plus explicit Darwin Quartz source requirements. The unchanged
+installer is exercised under `fontlab_install` with owned source/data and denied
+real process/network access. It remains presence-only for installed dependencies.
+
+The exact `./test.sh` wrapper, with owned arm64 Python 3.11.17/[test,svg] and the
+qualified ordinary App artifact, passes 149 tests. Complete `grablab.grab` combined
+coverage is 509/598 = 85.12% (374/434 statements, 135/164 branches), with zero
+excluded lines and the unchanged >=80% gate. Focused viewport/restoration and
+installer controls pass separately. These checks use owned doubles, not FontLab.
+
+The sdist includes four current Scripts and the byte-exact installer; the wheel
+remains library-only. Immutable Git-history recovery, all original migration
+hashes/keys and the exact qualified 1,955-byte historical owner entry are retained.
+The five historical helpers remain individually classified in README, outside
+active payloads; preserved source is not their functional delivery.
+
+Current native/owner installation, complete installer version/marker semantics,
+independent review, genuine postcommit artifacts, remote/main delivery, qualified
+cleanup and private Pages publication remain separate. Issue 123 remains paused.
+
+Fresh ordinary wheel and sdist installs of genuine hatch-vcs version
+`1.1.10.dev0+g5ed8d3758.d20261106` each pass the same 149 tests, using test and
+installer inputs copied from the built sdist. Isolated import/RECORD origins and
+source/resource parity are checked separately. The sdist has exactly four current
+Scripts plus the byte-exact installer; the wheel has library/metadata only.
+Bounded payload scans find no machine-path/token/private-key/Finder markers;
+these scans do not create broader privacy/licence/native acceptance.
+
+Ruff reports 12 unchanged production findings from the base; changed tests are
+clean and no new finding is introduced. No unrelated lint cleanup was performed.
+Wait, but: precommit dirty-tree artifacts qualify these candidate bytes only;
+independent review and genuine postcommit artifacts remain delivery requirements.

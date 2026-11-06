@@ -12,7 +12,7 @@ Qualify genuine distributions and owned native capture/rendering separately; pre
 
 ## Repository and development
 
-`src/` holds capture utilities; `examples/` shows their use; `tests/` covers offline behavior; `legacy/` retains recovery inputs.
+`src/` holds capture utilities; `examples/` shows their use; `tests/` covers offline behavior. `MIGRATION.json` records `legacy/source.tar.gz` at immutable Git revision `e74a8abc3888f2b829c2d3702f0b1f7fbeb6c0cb`; that path is historical, absent from the current tree and both distributions.
 
 Run `uv venv --python cpython-3.11-macos-aarch64-none`, then `uv pip install -e ../fontlab-fontlabapp -e ".[test,svg]"`, then `./test.sh`. The wrapper uses `--no-sync`, so prepare the environment first. Build with `uv build`.
 
@@ -20,7 +20,7 @@ Keep runtime, ordinary installed artifacts, native workflows and published docum
 
 # GrabLab
 
-Install `fontlab-grablab` for the `grablab` namespace, alongside `fontlab-fontlabapp`. Python 3.11+ and native FontLab
+Install `fontlab-grablab` for the `grablab` namespace, alongside `fontlab-fontlabapp>=1.2.0`. Python 3.11+ and native FontLab
 APIs are required for capture. Importing `grablab` itself is host-free; requesting Grab loads native APIs.
 
 ```python
@@ -52,7 +52,7 @@ uv pip install -e ../fontlab-fontlabapp -e '.[test,svg]'
 uv build
 ```
 
-`./test.sh` uses `--no-sync`; create the environment first. The suite has 141 tests, including the four icon modes.
+`./test.sh` uses `--no-sync`; create the environment first. The suite covers capture, source-installer contracts and the four icon modes.
 Ordinary-wheel capture in FontLab 9.0.9794 verified actual Font/Glyph windows, canvas and four panels, paired metadata,
 DPR2 and preference restoration. Four public grabCanvas variants also passed native PNG/SVG/JSON checks; six actual
 Designer files passed Qt5 uic. An owned CC0 sample was closed afterward with its source unchanged. Whole-desktop capture
@@ -200,3 +200,36 @@ grayscale image rather than converting its paths. Open linked screenshots direct
 embedding restricts external resources, so an SVG load event alone does not prove its icons loaded. See the [SVG2
 processing modes](https://www.w3.org/TR/SVG2/conform.html#secure-static-mode) and [image
 element](https://www.w3.org/TR/SVG2/embedded.html#ImageElement).
+
+
+## Source installation and retained history — 2026-11-06
+
+The source sdist includes the four current `Scripts/GrabLab` scripts and
+`install.vfpy`; the wheel installs only the library. The source installer declares
+App >=1.2.0 and `pyobjc-framework-Quartz>=10; sys_platform == 'darwin'` for the
+macOS F5/F6 hotkey script. App's optional `hotkeys` extra remains available;
+the linked installer metadata needs the explicit Quartz requirement. See
+[DEPENDENCIES.md](DEPENDENCIES.md) for its metadata boundary.
+
+The unchanged installer checks distribution presence only. It submits complete
+missing requirements to uv, which resolves versions and markers, but can skip an
+already present too-old version or invoke uv unnecessarily for a marker-false
+requirement. Full version/marker enforcement remains open. Without uv, missing
+dependencies produce guidance. Owned tests do not establish native installation.
+
+Glyph-window capture uses App's supported adapter for both direct and named-child
+viewports. Missing viewports raise `LookupError`; visibility preferences, viewport
+then window order, image-only returns and failure restoration remain unchanged.
+Current native capture is a separate acceptance surface.
+
+Five earlier helpers remain preserved historical source, outside active Scripts
+and distributions, with individual dispositions:
+
+- `copy_statusid.py`: clipboard/status-ID watcher; needs owned disconnect/traversal/clipboard acceptance.
+- `copy_statusid2.py`: quick-help/clipboard watcher; needs separate lifecycle qualification.
+- `print_menu.py`: manual Markdown menu-export candidate; screenshot APIs do not replace its output.
+- `print_uimenu.py`: manual Designer-menu export candidate; dialog and loader state need native qualification.
+- `ui_hider.py`: persisted visibility/watcher prototype; needs persistence ownership and visibility/signal restoration.
+
+Preservation does not deliver those runtime functions. No new cleanup deletion,
+owner installation, native acceptance or private Pages publication is qualified.

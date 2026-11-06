@@ -18,11 +18,12 @@
   "source_preserved": false,
   "recovery_archive": {
     "path": "legacy/source.tar.gz",
+    "git_revision": "e74a8abc3888f2b829c2d3702f0b1f7fbeb6c0cb",
     "sha256": "9e3eb66da2f21d16698d45dac0e711925479fd1181ae0194ce55eb2b3a546f80",
     "excluded_from_distributions": true
   },
   "source_cleanup": {
-    "status": "verified moved; verbatim originals retained in destination recovery",
+    "status": "verified moved; verbatim originals retained in repository Git history",
     "source_commits": {
       "aidus-code": "63773030c1b82fda2f7cc6774b68c042359bb3c7",
       "fontlabpy": "50933ff0f6329521caa300ba7c6c84c566a731bf",

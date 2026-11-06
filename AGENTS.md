@@ -14,7 +14,7 @@ Qualify genuine distributions and owned native capture/rendering separately; pre
 
 ## Organization and checks
 
-`src/` holds capture utilities; `examples/` shows their use; `tests/` covers offline behavior; `legacy/` retains recovery inputs.
+`src/` holds capture utilities; `examples/` shows their use; `tests/` covers offline behavior. `MIGRATION.json` records `legacy/source.tar.gz` at immutable Git revision `e74a8abc3888f2b829c2d3702f0b1f7fbeb6c0cb`; that path is historical, absent from the current tree and both distributions.
 
 Run `uv venv --python cpython-3.11-macos-aarch64-none`, then `uv pip install -e ../fontlab-fontlabapp -e ".[test,svg]"`, then `./test.sh`. The wrapper uses `--no-sync`, so prepare the environment first. Build with `uv build`.
 
@@ -26,8 +26,9 @@ Run `uv venv --python cpython-3.11-macos-aarch64-none`, then `uv pip install -e 
 
 - `import grablab` must stay host-free; native APIs load only when `Grab` is requested. Keep imports lazy; offline tests depend on it.
 - Capture calls temporarily change OpenGL, outline thickness, pixel rendering and the dark-glyph preference. Every change is restored in `finally`, including alternative-view toggles. Any new capture path needs a failure-path restoration test.
-- Depends on `fontlab-fontlabapp`; install it editable from the sibling checkout.
-- `MIGRATION.json` and the retained BSD-3-Clause notices record the source files. Leave `legacy/` unchanged.
+- Requires `fontlab-fontlabapp>=1.2.0`; its supported `qt.views.GlyphWindow` adapter resolves direct and named-child viewports. Use a qualified ordinary App artifact in isolated acceptance environments.
+- `MIGRATION.json` and the retained BSD-3-Clause notices record the source files. Preserve its Git-history recovery revision and hashes; do not restore the removed archive into current source.
+- Source sdists include the four current `Scripts/GrabLab` scripts and byte-exact `install.vfpy`; wheels remain library-only. The source override explicitly requests App >=1.2.0 and Darwin Quartz >=10. Installer presence-only dependency checks remain a known limitation; native capture/installation and private Pages remain separate and held as applicable.
 
 ## Commands
 

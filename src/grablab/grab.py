@@ -45,6 +45,7 @@ from typing import Any, Callable, Iterator
 
 from fontlab import CurrentFont
 from fontlabapp import Application
+from fontlabapp.qt.views import GlyphWindow
 from fontlabapp.utils import attribdict as adict
 from fontlabapp.utils import slugify, timestamp
 from PythonQt.Qt import QBuffer
@@ -539,7 +540,8 @@ class Grab(object):
                 )
                 paths.extend(
                     self.grabWidget(
-                        widget.widgetViewport, "gv", name, "Glyph window viewport"
+                        GlyphWindow(widget, self.app.ws).viewport,
+                        "gv", name, "Glyph window viewport"
                     )
                 )
                 paths.extend(self.grabWidget(widget, "gw", name, "Glyph window"))

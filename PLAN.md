@@ -14,6 +14,18 @@ Qualify whole-desktop capture, every panel/window configuration and dialog globa
 
 Keep whole-desktop/all-configurations/custom-widget reconstruction separate from accepted paired Font/Glyph-window, panel, metadata and six-style compositions. Preserve ambiguous raster content, image-only returns, runtime JSON/UI sidecars and explicit `restyle=True` font/stroke substitution. URL modes must retain named resources and disclose external-image styling/embedding limits. The owner's font creation/export waiver and absence of icon-font use remain part of the historical acceptance boundary, not an instruction to create fonts now.
 
+## Remaining source reconciliation
+
+Qualify full installed-version/marker enforcement separately through standard uv
+resolution, retaining the no-uv contract and testing too-old/present, marker-false,
+extras and failures before changing the installer. Keep the five historical helper
+dispositions in README; do not activate watchers, clipboard tools, dialogs or
+persistent visibility changes without their own owned lifecycle acceptance.
+
+Obtain independent review of this source MVP and genuine postcommit artifacts,
+then perform authorized remote/main delivery separately. Current native capture,
+owner installation and the private Pages hold remain separate.
+
 ## Provider and distribution maintenance
 
 Recheck current App imports and every caller before provider migration. Qualify genuine matching wheel/sdist origins, complete payload/privacy/licence checks and relevant native capture behavior only when those bytes change. Preserve legacy recovery provenance and the original failure receipts. Do not claim a new full screenshot/native acceptance from the docs change.

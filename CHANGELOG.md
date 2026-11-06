@@ -303,3 +303,49 @@ No open tasks. Workspace-level work is tracked in the parent TODO.md.
 
 - Qualify paired native window/panel/canvas snapshots and actual composed vector, mono and wireframe screenshots; preserve ambiguous raster content.
 - Verify ordinary artifacts, 122 tests and changed-module coverage above80%; record the owner font-work waiver and remaining native integration limits.
+
+
+## 2026-11-06 — bounded source reconciliation candidate
+
+- Reuse App >=1.2.0's GlyphWindow viewport adapter with direct/named/missing,
+  visibility/order/return and failure-restoration regression controls.
+- Restore the explicit source-installer App/Darwin Quartz requirements; keep
+  install.vfpy unchanged and disclose its presence-only version/marker limitation.
+- Include the four current Scripts and installer in sdists; wheels remain library-only.
+- Bind the removed recovery archive to its immutable ancestor revision while
+  preserving migration hashes/keys, fixture/licence/screenshot provenance and
+  the five historical helpers' individual dispositions outside active payloads.
+- Source, ordinary artifacts, current native/owner installation, remote delivery
+  and private Pages publication retain separate acceptance boundaries.
+
+### Retained historical owner report
+
+Historical owner report from 2026-11-05, retained verbatim from acb33b0a. Its native installation, live viewport, and 53-test statements are owner-reported history, not controller acceptance for current source. The presence-only installer check does not evaluate version ranges or markers; uv evaluates submitted requirement strings. Current supported behavior and ordinary proof are recorded separately.
+
+## 2026-11-05 — F5/F6 hotkey script: Quartz dependency installed
+
+`Scripts/GrabLab/grablab_on_f5_mac.py` failed with `ModuleNotFoundError: No module named 'Quartz'`:
+`fontlabapp.hotkey` imports `Quartz` on macOS, which App only declares in its optional
+`hotkeys` extra, and GrabLab's installer dependencies never asked for it. Following the
+fontport/glyport pattern, `[tool.fontlab-install] dependencies` now lists
+`fontlab-fontlabapp>=1.2.0` and `pyobjc-framework-Quartz>=10; sys_platform == 'darwin'`
+(spelled out: linked App records carry no extras metadata, so `fontlab-fontlabapp[hotkeys]`
+would resolve to nothing). `install.vfpy` is unchanged; its presence check and
+`uv pip install` already handle markers. Reinstalled through the native runner into the
+owner's FontLab 9: pyobjc-core, -cocoa and -quartz 13.0 landed in `.venv`/site-packages,
+the dist-info record lists both requirements, and inside the running host
+`fontlabapp.hotkey.HotkeyManager` resolves to `fontlabapp.core.hotkey.mac`. The owner's
+pre-existing hand-copied `Scripts/GrabLab` (byte-identical to the repo's) was moved aside so
+the installer could own the folder.
+
+`Scripts/GrabLab/grablab_on_save.py` connected `Grab().grabAll` straight to
+`QAction.triggered`, which emits `checked: bool`, so every save raised
+`TypeError: Grab.grabAll() takes 1 positional argument but 2 were given`. The slot is now a
+lambda that drops the argument. The installed copy in FontLab's Scripts folder was updated
+in place (same content the installer would copy).
+
+`Grab.grabGlyphWindows` read `widget.widgetViewport`, which FontLab 9's PythonQt does not
+expose as an attribute (`AttributeError: GlyphWindow has no attribute named 'widgetViewport'`).
+It now takes the viewport from App's `fontlabapp.qt.views.GlyphWindow`, which falls back to
+the child widget with that objectName. Verified in the running host: the open glyph window's
+viewport resolves to a `YLighterWidget`. Tests: 53 pass.
