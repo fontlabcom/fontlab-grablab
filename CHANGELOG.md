@@ -349,3 +349,7 @@ expose as an attribute (`AttributeError: GlyphWindow has no attribute named 'wid
 It now takes the viewport from App's `fontlabapp.qt.views.GlyphWindow`, which falls back to
 the child widget with that objectName. Verified in the running host: the open glyph window's
 viewport resolves to a `YLighterWidget`. Tests: 53 pass.
+
+## 2026-11-06 — Private documentation candidate
+
+Added the product-specific light ProperDocs/MaterialX source/generated site and every-main source/output qualification workflow without private Pages operations. Pythonqtside preserves and relocates its authored compatibility guide and private planning source, updates the sdist path and verifies actual archive contents. Runtime products and native acceptance are unchanged.

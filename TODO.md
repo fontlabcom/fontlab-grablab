@@ -18,3 +18,6 @@ this_file: TODO.md
 
 - [ ] Qualify full installed-version/marker enforcement with standard uv resolution and an explicit retained no-uv contract.
 - [ ] Keep each historical helper disposition explicit; qualify owned lifecycle/persistence before any maintained activation.
+
+- [ ] Qualify the reviewed documentation source through ordinary main Actions and exact source/output lineage.
+- [ ] Retain private Pages configuration and publication holds while native and owner-install gates remain separate.

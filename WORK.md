@@ -529,3 +529,7 @@ Ruff reports 12 unchanged production findings from the base; changed tests are
 clean and no new finding is introduced. No unrelated lint cleanup was performed.
 Wait, but: precommit dirty-tree artifacts qualify these candidate bytes only;
 independent review and genuine postcommit artifacts remain delivery requirements.
+
+## 2026-11-06 — Task11 source/build-only site candidate
+
+Added product-specific authored documentation, exact component legal assets, a separate 31-package docs lock and the qualified every-main source/output build workflow. The strict build and all 20 adapted Docs tests pass. A second independently installed docs environment rebuilt every output byte/mode exactly at the same BASE epoch. Browser, final bounded graph and preservation review are recorded separately in the private Task11 report; they are not native or live publication acceptance. No production runtime, lock, immutable provenance or installer was changed. Pythonqtside alone relocates its complete authored compatibility source and private historical plan; precise sdist/link consumers and the real archive regression test follow that move. Private P/L stays held.

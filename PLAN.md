@@ -37,3 +37,7 @@ Run `uv venv --python cpython-3.11-macos-aarch64-none`, then `uv pip install -e 
 ## Review, integration and cleanup
 
 Use the detailed open tasks in [TODO.md](TODO.md) as the acceptance checklist. Complete one scoped MVP, then run the exact repository checks and unchanged 80% gate for each complete changed production module. Keep source, genuine artifacts, ordinary origins and native behavior separate. Obtain independent review before a milestone commit/push and verify the actual remote head. Reconcile concurrent source and all callers before main integration. Preserve recovery/unique work and fresh owner/worktree attachments before obsolete branch/file cleanup. Update TODO/PLAN and record only scoped verified results in CHANGELOG. Do not drive the owner's FontLab, install into its user folder or publish a site from this proposal.
+
+## Private documentation delivery gates
+
+Consume the independently reviewed source-only candidate, rebuild generated output with the actual source commit epoch, and qualify normal repository main Actions and immutable X/Y lineage. Preserve native/owner-install gates. Private Pages configuration and publication remain owner-held.

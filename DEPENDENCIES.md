@@ -28,3 +28,7 @@ this_file: DEPENDENCIES.md
   maintained pure-Python selector matching and CSS parsing for paint specificity,
   source order, importance and inheritance. Avoid a custom CSS parser and preserve
   CSS-defined `none` during ordinary recoloring; capture does not import them.
+
+## Documentation build
+
+A separate Python 3.13 docs environment uses the 31-package hash lock at `src_docs/requirements.txt`: ProperDocs 1.6.7, MkDocs 1.6.1, MaterialX 10.1.8 and PyMdown 11.0.1. Search is the sole plugin; light fltheme26 assets provide the shared menu/footer. Runtime dependencies and locks remain separate.

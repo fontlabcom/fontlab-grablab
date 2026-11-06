@@ -75,3 +75,7 @@ Remove verified completed work from PLAN/TODO and record scoped evidence in
 CHANGELOG. Keep implemented-only native/artifact checks open in TODO. Issue 123
 remains paused; no instruction here authorizes driving the owner's FontLab,
 installing into its user folder or publishing a site.
+
+## Private source/build-only documentation
+
+Author pages under `src_docs/md` and use the separate hash-locked docs environment with `sh src_docs/build.sh`. Generated `docs` is immutable output. The main workflow qualifies direct source/output lineage and full ignored-output parity. Twelve private P/L operations remain owner-held; no Pages request or permission belongs here. Preserve runtime sources and native boundaries.

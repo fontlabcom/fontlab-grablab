@@ -18,6 +18,10 @@ Run `uv venv --python cpython-3.11-macos-aarch64-none`, then `uv pip install -e 
 
 Keep runtime, ordinary installed artifacts, native workflows and published documentation as separate acceptance results. Track open checks in [TODO.md](TODO.md), the implementation route in [PLAN.md](PLAN.md), and dated evidence in [CHANGELOG.md](CHANGELOG.md).
 
+## Documentation source and build
+
+The product guide starts at [src_docs/md/index.md](src_docs/md/index.md). Build with the separate hash-locked docs environment and `sh src_docs/build.sh`; run `python -m unittest discover -s tests_docs -v`. Every main commit qualifies source/output identity and byte parity. Private Pages configuration and publication remain owner-held.
+
 # GrabLab
 
 Install `fontlab-grablab` for the `grablab` namespace, alongside `fontlab-fontlabapp>=1.2.0`. Python 3.11+ and native FontLab
