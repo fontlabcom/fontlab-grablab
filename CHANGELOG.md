@@ -375,3 +375,20 @@ A new actual-output regression derives these counts and checks installed matches
 ## 2026-11-07 — Release-note attribution correction
 
 Removed the Pythonqtside-only relocation and sdist sentence from the Task11 documentation entry. All history before that entry remains byte-exact. The existing documentation checks and normal installed pre-push gate pass; WORK.md records their scope and limits.
+
+
+## 2026-11-07 — Resolve complete source-installer requirements with uv
+
+The source installer now sends every declared requirement unchanged to uv,
+including versions, markers and extras, when uv is available. It retains empty
+requirements, both Python target routes, normal satisfied-package behavior and
+the explicit limited presence-only fallback without uv. No runtime dependency
+or custom requirement parser is added.
+
+All 189 source tests pass; the complete installer reaches 95.77% combined
+statement/branch coverage with no exclusions. Owned offline resolver experiments
+prove too-old upgrade, false-marker omission, requested extras, satisfied no-op
+and real failure/payload preservation on both target routes. Genuine precommit
+wheel/sdist and ordinary tests qualify their recorded candidate bytes separately
+from final delivery. Native/owner installation, full G2 and private Pages remain
+separate. All earlier history, including the qualified owner report, is retained.

@@ -28,7 +28,7 @@ Run `uv venv --python cpython-3.11-macos-aarch64-none`, then `uv pip install -e 
 - Capture calls temporarily change OpenGL, outline thickness, pixel rendering and the dark-glyph preference. Every change is restored in `finally`, including alternative-view toggles. Any new capture path needs a failure-path restoration test.
 - Requires `fontlab-fontlabapp>=1.2.0`; its supported `qt.views.GlyphWindow` adapter resolves direct and named-child viewports. Use a qualified ordinary App artifact in isolated acceptance environments.
 - `MIGRATION.json` and the retained BSD-3-Clause notices record the source files. Preserve its Git-history recovery revision and hashes; do not restore the removed archive into current source.
-- Source sdists include the four current `Scripts/GrabLab` scripts and byte-exact `install.vfpy`; wheels remain library-only. The source override explicitly requests App >=1.2.0 and Darwin Quartz >=10. Installer presence-only dependency checks remain a known limitation; native capture/installation and private Pages remain separate and held as applicable.
+- Source sdists include the four current `Scripts/GrabLab` scripts and byte-exact `install.vfpy`; wheels remain library-only. The source override explicitly requests App >=1.2.0 and Darwin Quartz >=10. With uv, the installer resolves the full declared requirement list; its no-uv fallback remains presence-only; native capture/installation and private Pages remain separate and held as applicable.
 
 ## Commands
 

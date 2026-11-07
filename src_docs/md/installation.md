@@ -13,11 +13,12 @@ macOS F5/F6 hotkey script. App's optional `hotkeys` extra remains available;
 the linked installer metadata needs the explicit Quartz requirement. See
 [DEPENDENCIES.md](https://github.com/fontlabcom/fontlab-grablab/blob/090234b30453f425a6a3d5e423af428f0f9fa6fa/DEPENDENCIES.md) for its metadata boundary.
 
-The unchanged installer checks distribution presence only. It submits complete
-missing requirements to uv, which resolves versions and markers, but can skip an
-already present too-old version or invoke uv unnecessarily for a marker-false
-requirement. Full version/marker enforcement remains open. Without uv, missing
-dependencies produce guidance. Owned tests do not establish native installation.
+When uv is available, the source installer submits every declared requirement
+unchanged, including versions, markers and extras, to uv's standard resolver.
+Already satisfactory dependencies are retained without forced upgrades or reinstalls.
+Without uv, the existing fallback checks distribution presence only: it reports
+missing dependencies but does not enforce versions, markers or extras. Owned tests
+do not establish native installation.
 
 Glyph-window capture uses App's supported adapter for both direct and named-child
 viewports. Missing viewports raise `LookupError`; visibility preferences, viewport

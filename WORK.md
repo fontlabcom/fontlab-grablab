@@ -557,3 +557,47 @@ A new actual-output regression derives these counts and checks installed matches
 Verified the Task11 introduction against Git history, then removed its Pythonqtside-only relocation and sdist sentence from CHANGELOG.md. All pre-Task11 CHANGELOG bytes and the complete earlier WORK record remain exact. The existing documentation suite passes all 36 tests before and after the correction. The unchanged installed pre-push hook passes 149 tests and its existing 80% combined-coverage gate for all 2 historical production modules; this prose repair changes no production module.
 
 Wait, but: these are local source checks. Earlier artifact versions, installed origins and native acceptance retain their recorded revisions and limits. Independent review, actual source delivery and main-triggered documentation qualification remain separate; private Pages operations stay held.
+
+
+## 2026-11-07 — Full source-installer requirements through uv
+
+The bounded installer successor passes all declared requirements unchanged to uv,
+including versions, markers and extras, even when distributions already exist.
+The empty-list fast path and both original Python/target routes remain. Without
+uv, the explicit presence-only fallback and missing-dependency guidance remain.
+No dependency parser, runtime dependency or forced upgrade/reinstall was added.
+
+An unchanged-source baseline passed 149 tests. Six new resolver regressions failed
+before the change; all 189 source tests now pass. Owned filesystem/lifecycle tests
+cover repeated install/uninstall, foreign-content preservation, staging failure,
+venv repair and the main failure log without native calls. The complete changed
+installer covers 376/384 statements and 145/160 branches (95.77% combined), with
+zero exclusions and the unchanged 80% gate. The normal historical two-module
+pre-push coverage gate remains separate and unchanged.
+
+Real offline uv 0.13.7 experiments load the actual installer function under its
+fontlab_install name and use owned arm64 Python 3.11 prefixes and tiny local
+wheels. Both existing target routes upgrade a present version 1 to required
+version 2, install a requested extra, ignore a false marker and retain satisfied
+metadata without reinstalling. An unsatisfiable local requirement propagates a
+real uv failure while preserving every installed file, including RECORD. Mocked
+main failure-log and OSError tests are distinct from this real resolver proof.
+
+Genuine precommit VCS wheel/sdist/rebuilt-wheel candidates pass Twine; the sdist
+contains the exact installer and four scripts, and the wheel remains library-only.
+Both ordinary wheel/sdist environments pass 189 tests with verified installed
+origins and every installed wheel RECORD. The actual extracted-sdist installer
+also passes the full suite and complete-module coverage gate. These precommit
+artifacts are candidates; final commit metadata/artifacts, independent review and
+actual main/CI delivery remain separate.
+
+Clone-only graph context/impact cannot index install_dependencies and report
+UNKNOWN. Current AST confirms install calls it, main calls install, and
+write_tools copies the same file into the installed helper. Retain graph caps
+(31 unexplored entry points, 34 dropped callees, eight budget-cut walks and one
+large VFJ skip); no global graph clearance follows.
+
+Wait, but: no-uv presence does not validate versions, markers or extras. Owned
+source and ordinary artifact proof does not establish native/owner installation,
+full G2, historical helper activation or private Pages publication. The five
+historical helper dispositions and source/licence/provenance history remain.

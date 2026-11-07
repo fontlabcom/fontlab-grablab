@@ -16,7 +16,7 @@ this_file: TODO.md
 
 - [ ] Retain owned-fixture and restoration requirements before later native capture/export verification.
 
-- [ ] Qualify full installed-version/marker enforcement with standard uv resolution and an explicit retained no-uv contract.
+- [ ] Qualify actual FontLab source installation separately from owned uv resolution tests; retain the explicit no-uv presence-only limitation.
 - [ ] Keep each historical helper disposition explicit; qualify owned lifecycle/persistence before any maintained activation.
 
 - [ ] Qualify the reviewed documentation source through ordinary main Actions and exact source/output lineage.

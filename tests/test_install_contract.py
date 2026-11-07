@@ -89,7 +89,7 @@ def test_source_install_when_quartz_missing_then_exact_metadata_command_or_failu
     records = i.read_log(i.data_dir() / "Extensions/com.fontlab.grablab")
     assert records[0]["requires"] == REQUIRES
     if uv:
-        assert calls == [[uv, "pip", "install", "--link-mode=copy", "--python", str(python), QUARTZ]]
+        assert calls == [[uv, "pip", "install", "--link-mode=copy", "--python", str(python)] + REQUIRES]
     else:
         assert not calls and "Missing dependencies (install uv" in capsys.readouterr().out
     if status:
@@ -105,3 +105,52 @@ def test_existing_presence_only_fast_path_is_retained_without_uv(installer, monk
     assert i.missing(REQUIRES) == [], "Known limit: presence does not validate installed versions"
     i.main()
     assert "Missing dependencies" not in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("version", ["0.0.0", "99.0.0"])
+@pytest.mark.parametrize("python_route", [True, False])
+def test_uv_when_distributions_present_then_resolves_complete_requirements(
+    installer, monkeypatch, tmp_path, version, python_route
+):
+    i = installer
+    monkeypatch.setattr(i.metadata, "distribution", lambda name: SimpleNamespace(version=version))
+    calls = []
+    monkeypatch.setitem(i.main.__globals__, "run", lambda cmd: (
+        calls.append(cmd) or SimpleNamespace(returncode=0, stdout="resolved")))
+    python = tmp_path / "venv/bin/python" if python_route else None
+    i.install_dependencies(tmp_path, REQUIRES, "owned-uv", python)
+    target = ["--python", str(python)] if python else [
+        "--python", i.python_requests()[1], "--target", str(tmp_path)]
+    assert calls == [["owned-uv", "pip", "install", "--link-mode=copy"] + target + REQUIRES]
+    assert "--upgrade" not in calls[0] and "--reinstall" not in calls[0]
+
+
+@pytest.mark.parametrize("requirements", [
+    ["absent>=1; python_version < '0'"], ["owned[feature]>=2"],
+])
+def test_uv_when_marker_or_extra_then_preserves_original_declaration(
+    installer, monkeypatch, tmp_path, requirements
+):
+    i = installer
+    monkeypatch.setattr(i.metadata, "distribution", denied)
+    calls = []
+    monkeypatch.setitem(i.main.__globals__, "run", lambda cmd: (
+        calls.append(cmd) or SimpleNamespace(returncode=0, stdout="resolved")))
+    i.install_dependencies(tmp_path, requirements, "owned-uv", tmp_path / "python")
+    assert calls[0][-len(requirements):] == requirements
+
+
+@pytest.mark.parametrize("uv", [None, "owned-uv"])
+def test_dependencies_when_empty_then_no_probe_or_process(installer, monkeypatch, tmp_path, uv):
+    monkeypatch.setattr(installer.metadata, "distribution", denied)
+    installer.install_dependencies(tmp_path, [], uv, None)
+
+
+def test_main_when_uv_process_cannot_start_then_records_failure(installer, monkeypatch):
+    i = installer
+    monkeypatch.setitem(i.main.__globals__, "find_uv", lambda: "owned-uv")
+    monkeypatch.setitem(i.main.__globals__, "ensure_venv", lambda *args: i.SOURCE / "python")
+    monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: (_ for _ in ()).throw(OSError("owned failure")))
+    with pytest.raises(OSError, match="owned failure"):
+        i.main()
+    assert "owned failure" in i.read_log(i.data_dir() / "Extensions/com.fontlab.grablab")[-1]["error"]

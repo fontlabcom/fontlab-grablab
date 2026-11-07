@@ -157,8 +157,8 @@ class SiteTests(unittest.TestCase):
                 self.assertIn(f'{relative} {label}', rendered)
         with self.subTest(contract='catalogue header'):
             self.assertIn('| Script | Public #FLM menu label |', installation)
-        with self.subTest(contract='G2 installer limitation'):
+        with self.subTest(contract='G2 uv resolution and retained no-uv limitation'):
             development = (ROOT / 'src_docs/md/development-and-limits.md').read_text()
-            self.assertIn('G2 checks installer presence only; version and marker enforcement remain open.', development)
+            self.assertIn('The source installer now delegates the complete declared requirements to uv, including versions, markers and extras; the no-uv fallback remains presence-only.', development)
         a = (ROOT / 'src/grablab/grab.py').read_bytes().split(b'# Copyright', 1)[1].split(b'\n\n', 1)[0]
         self.assertEqual((SITE / 'assets/BSD-3-Clause-NOTICE.txt').read_bytes(), b'# Copyright' + a + b'\n')

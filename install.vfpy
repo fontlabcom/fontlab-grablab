@@ -439,7 +439,7 @@ def write_tools(data, site, ext_id):
 
 
 def missing(requires):
-    # shortcut: checks presence only, not version ranges; uv enforces ranges when it installs.
+    # No-uv fallback: checks presence only, not versions, markers or extras.
     result = []
     for req in requires:
         try:
@@ -457,14 +457,15 @@ def find_uv():
 
 
 def install_dependencies(site, requires, uv, python):
-    needed = missing(requires)
-    if not needed:
+    if not requires:
         return
     if not uv:
-        print("Missing dependencies (install uv, then run this again):\n  " + "\n  ".join(needed))
+        needed = missing(requires)
+        if needed:
+            print("Missing dependencies (install uv, then run this again):\n  " + "\n  ".join(needed))
         return
     where = ["--python", str(python)] if python else ["--python", python_requests()[1], "--target", str(site)]
-    command = [uv, "pip", "install", "--link-mode=copy"] + where + needed
+    command = [uv, "pip", "install", "--link-mode=copy"] + where + requires
     print("Installing dependencies: " + " ".join(command))
     result = run(command)
     print(result.stdout)

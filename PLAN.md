@@ -16,10 +16,9 @@ Keep whole-desktop/all-configurations/custom-widget reconstruction separate from
 
 ## Remaining source reconciliation
 
-Qualify full installed-version/marker enforcement separately through standard uv
-resolution, retaining the no-uv contract and testing too-old/present, marker-false,
-extras and failures before changing the installer. Keep the five historical helper
-dispositions in README; do not activate watchers, clipboard tools, dialogs or
+Qualify actual FontLab installation separately from the owned source-installer
+resolver checks. Retain the explicitly limited no-uv presence-only fallback.
+Keep the five historical helper dispositions in README; do not activate watchers, clipboard tools, dialogs or
 persistent visibility changes without their own owned lifecycle acceptance.
 
 Obtain independent review of this source MVP and genuine postcommit artifacts,

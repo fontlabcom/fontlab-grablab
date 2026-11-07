@@ -13,11 +13,12 @@ this_file: DEPENDENCIES.md
   optional `hotkeys` extra; the linked installer metadata writes Requires-Dist
   without optional dependency/Provides-Extra metadata, so the explicit override
   is needed. The library-only wheel does not activate that script or require Quartz.
-- `install.vfpy` detects dependency presence by distribution name only. Missing
-  dependencies are passed unchanged to uv, which resolves their versions/markers;
-  present but too-old versions can be skipped, and marker-false missing packages
-  can trigger unnecessary uv invocation. Full installed-version/marker enforcement
-  remains separate work. Without uv, missing requirements are reported as guidance.
+- With uv available, `install.vfpy` submits the complete declared requirement list
+  unchanged to the standard uv resolver, including versions, markers and extras.
+  Satisfactory dependencies are not forcibly upgraded or reinstalled. Empty lists
+  do not start a dependency-install process. Without uv, the retained fallback
+  checks presence only and reports missing dependencies; it does not validate
+  installed versions, markers or extras.
 - Native PythonQt QtGui/QtSvg/Qt and FontLab: supplied by the host for capture.
 - Standard pathlib, tempfile and ElementTree: existing file/SVG implementation.
 - Optional `svg` extra: Pillow >=10 decodes PNGs into exact8-bit premultiplied RGBa pixel keys;
