@@ -352,7 +352,7 @@ viewport resolves to a `YLighterWidget`. Tests: 53 pass.
 
 ## 2026-11-06 — Private documentation candidate
 
-Added the product-specific light ProperDocs/MaterialX source/generated site and every-main source/output qualification workflow without private Pages operations. Pythonqtside preserves and relocates its authored compatibility guide and private planning source, updates the sdist path and verifies actual archive contents. Runtime products and native acceptance are unchanged.
+Added the product-specific light ProperDocs/MaterialX source/generated site and every-main source/output qualification workflow without private Pages operations. Runtime products and native acceptance are unchanged.
 
 
 ## 2026-11-07 — Exact frontend notices and English search assets
@@ -370,3 +370,8 @@ No product release or installation is claimed. Prior ordinary artifacts remain b
 The current HTML/CSS contains 45 distinct ordered SVG path tuples. A complete scan of the four installed MaterialX icon families finds 43 exact installed matches and two unmatched Lucide tuples, refining the earlier known-candidate inventory. The additional installed match is the Font Awesome version caret-down. Its existing CSS header and full notice retain Font Awesome Free 7.1.0, Fonticons and CC-BY-4.0 icon attribution. The official NPM caret SVG has different raw path bytes; no unmodified-primary SVG, whole-geometry or optimizer-recipe equivalence is claimed. The two unmatched Lucide tuples retain their pinned SCSS source attribution.
 
 A new actual-output regression derives these counts and checks installed matches, unmatched CSS references and the caret header. It fails against the prior 42 count and passes with the corrected metadata. All 36 current documentation tests pass; full strict and independent exact-lock builds match every output byte and mode. Only the legal paragraph, corresponding inventory and legal search row change in the site. Runtime, packaging, generators, vendor assets, full notices, existing guidance and the Fly search fix remain exact. Fresh browser verification and independent review are recorded separately. No private Pages operation, delivery, installed-product upgrade or native acceptance is claimed.
+
+
+## 2026-11-07 — Release-note attribution correction
+
+Removed the Pythonqtside-only relocation and sdist sentence from the Task11 documentation entry. All history before that entry remains byte-exact. The existing documentation checks and normal installed pre-push gate pass; WORK.md records their scope and limits.
