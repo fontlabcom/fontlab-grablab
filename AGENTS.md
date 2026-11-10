@@ -79,3 +79,14 @@ installing into its user folder or publishing a site.
 ## Private source/build-only documentation
 
 Author pages under `src_docs/md` and use the separate hash-locked docs environment with `sh src_docs/build.sh`. Generated `docs` is immutable output. The main workflow qualifies direct source/output lineage and full ignored-output parity. Twelve private P/L operations remain owner-held; no Pages request or permission belongs here. Preserve runtime sources and native boundaries.
+
+## Integration rounds
+
+After each round of important changes, integrate it into `main` and upstream:
+fetch `origin/main`, build the change on top of it in an isolated branch or
+worktree, and resolve conflicts by keeping both our work and teammates' work.
+Never discard upstream commits, and never force-push. Run the repository's
+checks on the merged result, then push to `origin main`. Record the change in
+CHANGELOG.md, move verified-solved TODO.md items into CHANGELOG.md, update
+PLAN.md, and continue with the next TODO.md item until the list is clear.
+`install.vfpy` is shared: keep it byte-identical in every installer repository.

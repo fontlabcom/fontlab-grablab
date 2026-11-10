@@ -121,7 +121,37 @@ def test_update_when_owned_then_stale_files_removed_and_foreign_files_kept(insta
     assert i.installed()[EXT_ID]["mode"] == "linked"
 
 
-@pytest.mark.parametrize("conflict", ["script", "category-link", "extension", "extension-link", "package", "menu"])
+@pytest.mark.parametrize("conflict", ["script", "category-link"])
+def test_main_when_script_path_taken_then_reinstalled_and_link_target_preserved(installer, tmp_path, conflict):
+    """Scripts are always reinstalled: a file at a script path is replaced, a folder link becomes a real folder."""
+    i = installer
+    data = i.data_dir()
+    outside = tmp_path / "foreign"
+    outside.mkdir()
+    (outside / "keep").write_bytes(b"foreign")
+    script = data / "Scripts/Group/One.py"
+    if conflict == "script":
+        script.parent.mkdir(parents=True)
+        script.write_bytes(b"stale")
+    else:
+        script.parent.parent.mkdir(parents=True)
+        script.parent.symlink_to(outside, target_is_directory=True)
+    i.main()
+    assert script.read_bytes() == (i.SOURCE / "Scripts/Group/One.py").read_bytes()
+    assert not script.parent.is_symlink()
+    assert sorted(p.name for p in outside.iterdir()) == ["keep"], "A linked folder's target is never written"
+
+
+def test_main_when_directory_at_script_path_then_refuses(installer):
+    i = installer
+    script = i.data_dir() / "Scripts/Group/One.py"
+    script.mkdir(parents=True)
+    with pytest.raises(RuntimeError, match="Refusing"):
+        i.main()
+    assert script.is_dir()
+
+
+@pytest.mark.parametrize("conflict", ["extension", "extension-link", "package", "menu"])
 def test_main_when_foreign_target_then_refuses_and_preserves(installer, tmp_path, conflict):
     i = installer
     data = i.data_dir()
