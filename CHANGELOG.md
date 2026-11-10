@@ -2,6 +2,13 @@
 this_file: CHANGELOG.md
 ---
 
+## 2026-11-10 — native smoke passed against App main (Issue 250)
+
+`examples/native_smoke.py` ran inside FontLab 9 through `fl-native.sh` with
+`sys.path` swapped to App origin/main and this source: it printed "Native PNG and
+SVG passed" (widget capture wrote a PNG and an SVG to a temporary folder). The
+installed-wheel run remains open. No code changed.
+
 ## 2026-11-10 — live font editing rule (Issue 250, D44)
 
 - AGENTS.md: agents test and edit the font open in FontLab 9, starting from the Desktop VFJs, and may save them.

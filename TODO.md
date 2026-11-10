@@ -11,7 +11,7 @@ this_file: TODO.md
 
 - [ ] Native check of whole-desktop capture and every panel/window configuration (README lists these as integration checks; WORK.md lists global hotkey capture and desktop screens as open).
 - [ ] Hold dialog-based capture cases until QColorDialog/QFileDialog global state restoration is proved (workspace AGENTS.md).
-- [ ] Re-run installed-wheel native smoke (`examples/native_smoke.py`) against the issue-122 fontlabapp refactor.
+- [ ] Re-run `examples/native_smoke.py` from the installed wheel (the 2026-11-10 run passed from source against App origin/main; the wheel run is still open).
 
 
 - [ ] Retain owned-fixture and restoration requirements before later native capture/export verification.
