@@ -133,6 +133,11 @@ recorded in the root CHANGELOG and retained verification reports.
 
 # Changelog
 
+## 2026-11-10 — Issue 250 documentation round
+
+- AGENTS.md describes the delegation, integration and release workflow.
+- WORK.md reset to the current round; the earlier bytes are archived on the owner's workspace data volume, not public.
+
 ## 2026-11-03 — Issue 201 audit
 
 - No file removed: every tracked file is referenced by code, tests, packaging or docs (evidence in the
