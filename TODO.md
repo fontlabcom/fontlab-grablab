@@ -17,7 +17,7 @@ this_file: TODO.md
 - [ ] Retain owned-fixture and restoration requirements before later native capture/export verification.
 
 - [ ] Qualify actual FontLab source installation separately from owned uv resolution tests; retain the explicit no-uv presence-only limitation.
-- [ ] Keep each historical helper disposition explicit; qualify owned lifecycle/persistence before any maintained activation.
+- [ ] Qualify owned lifecycle/persistence for any historical helper before maintained activation. Dispositions and inactivity are pinned by `tests/test_historical_helpers.py`; the five preserved sources are not on GrabLab `main` (they remain in the workspace's confidential historical corpus), so the tests assert absence only. Next check: before activating one, copy its preserved source into an isolated lane and add owned lifecycle tests.
 
 - [ ] Qualify the reviewed documentation source through ordinary main Actions and exact source/output lineage.
 - [ ] Retain private Pages configuration and publication holds while native and owner-install gates remain separate.

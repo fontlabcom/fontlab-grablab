@@ -2,6 +2,12 @@
 this_file: CHANGELOG.md
 ---
 
+## 2026-11-11 — historical helper dispositions pinned (Issue 250)
+
+- New `tests/test_historical_helpers.py`. Each of `copy_statusid.py`, `copy_statusid2.py`, `print_menu.py`, `print_uimenu.py` and `ui_hider.py` must keep exactly one README disposition line. None may appear under `Scripts`, the wheel packages, the sdist `only-include` inputs or `[tool.fontlab-install]` script folders, and neither `install.vfpy` nor `MIGRATION.json` may name them.
+- The preserved sources are not on GrabLab `main`; they remain in the workspace's confidential historical corpus. The tests therefore assert absence, not content.
+- Mutants: a `Scripts/Help Dev/ui_hider.py` file, a `src/grablab/legacy/print_uimenu.py` file, a removed `print_menu.py` README line and a `copy_statusid` mention in `install.vfpy` each fail 1 test (7 pass).
+
 ## 2026-11-10 — native smoke passed against App main (Issue 250)
 
 `examples/native_smoke.py` ran inside FontLab 9 through `fl-native.sh` with
