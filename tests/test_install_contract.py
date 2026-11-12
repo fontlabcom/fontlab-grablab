@@ -62,9 +62,10 @@ def test_source_install_when_quartz_missing_then_exact_metadata_command_or_failu
     calls = []
 
     def distribution(name):
-        if name != "fontlab-fontlabapp":
+        if i.norm(name) != i.norm("fontlab-fontlabapp"):
             raise i.metadata.PackageNotFoundError(name)
-        return SimpleNamespace(version="1.2.0")
+        # Installed earlier from its sibling checkout, so uv must not look it up.
+        return SimpleNamespace(version="1.2.0", read_text=lambda f: "install.vfpy\n" if f == "INSTALLER" else None)
 
     def fake_run(command, **kwargs):
         assert command[0] == "fake-uv" and command[1:3] == ["pip", "install"]

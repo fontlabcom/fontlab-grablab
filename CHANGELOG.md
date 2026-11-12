@@ -2,6 +2,10 @@
 this_file: CHANGELOG.md
 ---
 
+## 2026-11-12 — install contract fake matches installed App metadata (owner change)
+
+- The owner changed `tests/test_install_contract.py`. The `distribution` fake now compares normalised names (`i.norm`), as `install.vfpy` does. It also reports `INSTALLER` as `install.vfpy`, because App was installed earlier from its sibling checkout and uv must not look it up again. Landed by lander1 from the owner's working-tree edit; no other bytes changed.
+
 ## 2026-11-11 — historical helper dispositions pinned (Issue 250)
 
 - New `tests/test_historical_helpers.py`. Each of `copy_statusid.py`, `copy_statusid2.py`, `print_menu.py`, `print_uimenu.py` and `ui_hider.py` must keep exactly one README disposition line. None may appear under `Scripts`, the wheel packages, the sdist `only-include` inputs or `[tool.fontlab-install]` script folders, and neither `install.vfpy` nor `MIGRATION.json` may name them.
