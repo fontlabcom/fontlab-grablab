@@ -2,6 +2,12 @@
 this_file: CHANGELOG.md
 ---
 
+## 2026-11-12 — D46 documentation pass (Issue 250)
+
+- Landed on `main` this session: `e3644bd` (2026-11-10 entry), `e71be0f` (historical helper dispositions, 2026-11-11), `3d5209b` (install-contract fake matches installed App metadata, owner change) and `3022a89` (TODO: decide whether Grablab joins the `install.vfpy` sync set). No source changed in this pass.
+- Grablab's `install.vfpy` (a46f3d19) was deliberately not synced to App's canonical `install.vfpy` (Issue 254 propagation covered App, pens, fontport, echopy, fly, glyport and scriptmix); the decision stays an open TODO row.
+- `WORK.md` is a short status stub; its earlier 43,685-byte content (SHA-256 `0a8a5eea588b92b5b112242189e6645081f65f288f348b5a1b4e5e58116eb4a3`) stays archived on the workspace data volume.
+
 ## 2026-11-12 — install contract fake matches installed App metadata (owner change)
 
 - The owner changed `tests/test_install_contract.py`. The `distribution` fake now compares normalised names (`i.norm`), as `install.vfpy` does. It also reports `INSTALLER` as `install.vfpy`, because App was installed earlier from its sibling checkout and uv must not look it up again. Landed by lander1 from the owner's working-tree edit; no other bytes changed.
