@@ -4,8 +4,8 @@ this_file: TODO.md
 
 # Open tasks
 
-- [ ] Independently review the Issue 255 Fly consumer migration and rerun controller source/docs gates on the reviewed containing commit.
-- [ ] Qualify Issue 255 genuine wheel/sdist payloads and ordinary installed consumers separately from source/stand-in tests before release and integration claims.
+- [ ] Issue 255: After explicit D43 recovery and admission, qualify matching installed App/Fly/GrabLab lifecycle, F5/F6 and Save behavior, native glyph capture and restoration; execute the published sdist example examples/native_smoke.py against the genuine installed GrabLab 1.1.14 wheel, asserting library imports resolve to that wheel and recording loaded paths.
+
 
 - [ ] Qualify current native glyph viewport capture against the matching App artifact; keep SVG/icon mode and restoration contracts.
 - [ ] Qualify genuine distributions and owned native capture/rendering separately; preserve archived source and existing input provenance.

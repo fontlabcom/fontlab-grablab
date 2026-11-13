@@ -6,14 +6,9 @@ this_file: PLAN.md
 
 Issue 230 reconciliation is current. Issue 123 implementation remains paused; its acceptance backlog below is preserved, not resumed. Keep qualified Issue 207 candidates distinct from canonical source, ordinary installed artifacts, native acceptance and publication. Issue 210 defines the future plugin split; Issue 211 retains follow-up checks. The owner corrected the preparation catalogue reference to Issue 214.
 
-## Issue 255 consumer qualification
+## Issue 255 remaining native acceptance
 
-The authored Fly import migration and script-only Fly prerequisite pass offline
-source checks. Obtain independent review, rerun controller gates and build docs
-from a reviewed containing commit. Qualify genuine wheel/sdist bytes, ordinary
-installed origins and consumer behavior before delivery/release claims. Keep the
-library's canonical App imports and the shared installer untouched; native D43
-and private Pages holds remain separate.
+After explicit D43 recovery and admission, qualify matching installed App/Fly/GrabLab lifecycle, F5/F6 and Save behavior, native glyph capture and restoration; execute the published sdist example examples/native_smoke.py against the genuine installed GrabLab 1.1.14 wheel, asserting library imports resolve to that wheel and recording loaded paths. Source, genuine artifact, ordinary external-install and release/download qualification for v1.1.14 is recorded in CHANGELOG. Existing private Pages and Issue 123 holds remain. Menu scripts and the smoke example are sdist/source payloads, not runtime-wheel payloads. The retained wheel-native TODO requires a packaging-scope decision before execution.
 
 ## Remaining native integration
 

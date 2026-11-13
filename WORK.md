@@ -2,47 +2,16 @@
 this_file: WORK.md
 ---
 
-# Current round — Issue 255 authored consumers
+# Current round — Issue 255 post-release reconciliation
 
-The earlier short WORK status is retained in this round's private external
-baseline evidence. Older history remains in CHANGELOG and the existing archive.
+[fontlab-grablab v1.1.14](https://github.com/fontlabcom/fontlab-grablab/releases/tag/v1.1.14) is qualified at `0de4c56f07605560309e47b774c8060a246141ce`.
 
-Migrated the two provider-consuming menu scripts, native smoke example and
-`grab.py` main example to Fly. Source consumer requirements now include
-Fly >=1.3.0; library App requirements and shared installer bytes remain unchanged.
-Current teaching and exact installer tests agree with that distribution boundary.
+The F5/F6 and Save consumers, native smoke example and guarded Grab example use Fly; the wheel remains library-only.
 
-Verification: eight new consumer cases failed before migration; 206 runtime tests
-now pass on arm64 CPython 3.11.14. Complete changed production module coverage has
-zero exclusions: F5/F6 36/36 statements and 6/6 branches; Save 3/3 statements and
-no branches; native smoke 19/19 statements and no branches; grab.py 374/435
-statements (85.98%) and 135/164 branches (82.32%). The native-smoke result uses
-stand-ins, including failure cleanup, rather than executing the native host.
-Ruff 0.17.5 retains the same 31 inherited findings. Independent source review reports SPEC PASS / QUALITY PASS. Controller reruns
-pass all 206 runtime tests and the same four strict module gates. The actual
-hash-locked documentation build and all 36 documentation tests pass; a second
-clean rebuild has exact 50-file parity. Final containing-commit output and
-ordinary artifacts remain separate checks.
+206 runtime tests and all four complete changed-module gates pass (grab.py: 85.98% statements, 82.32% branches; the other three modules: 100%). All 36 documentation tests and exact 50-file parity pass. Genuine wheel/sdist ordinary cohorts each contain 29 compatible packages and match all 7 installed payload files; eight extracted-sdist consumer cases use stand-ins. Normal main/tag hooks, CI and actual downloads are qualified.
 
-An ordinary released Fly 1.3.0/App 1.2.15 environment confirms App, legacy PrefLib
-and hotkey module identity. Native Qt routing preserves a stand-in's identity
-and null import spec. Explicit source origin checks keep the GrabLab probe
-separate from ordinary GrabLab distribution acceptance.
+The source, artifact, ordinary external-install, release and download gates above are verified. This round reconciles their progress records after release; it changes no runtime source, installer, dependency declaration, generated documentation or immutable release asset. Menu scripts and the smoke example are sdist/source payloads. Native acceptance must execute the published sdist example against the genuine installed GrabLab 1.1.14 wheel and assert that library imports resolve to that wheel.
 
-Scoped pre-edit graph analysis had 618 nodes/1,268 edges. Hotkey impact was
-UNKNOWN (dynamic callback references unresolved), and external Application was
-not indexed. AST-grep confirms the actual F5/F6 registrations, Save signal and
-Application call sites. Process tracing is capped: 31 entry points unexplored,
-34 callees skipped and eight walks cut. Missing graph edges are not absence
-proof. Both graph locations are task-owned and extension installation is
-load-only; shared exclusion/index bytes remained unchanged at the pre-edit check.
-Final refresh has 634 nodes/1,290 edges; detect-changes reports 16 files,
-17 symbols, zero affected processes and low risk. That result remains bounded
-by the unresolved dynamic callbacks and capped process tracing above; source
-inspection and stand-in behavior checks provide the missing consumer evidence.
+Remaining: After explicit D43 recovery and admission, qualify matching installed App/Fly/GrabLab lifecycle, F5/F6 and Save behavior, native glyph capture and restoration; execute the published sdist example examples/native_smoke.py against the genuine installed GrabLab 1.1.14 wheel, asserting library imports resolve to that wheel and recording loaded paths.
 
-Remaining: containing-commit artifact/docs qualification, then authorized
-integration/release separately.
-Native D43, private Pages and Issue 123 holds remain. No host handlers, native
-capture, owner installation, commit or push occurred. Generated documentation
-is a qualified controller preview until its containing-commit rebuild.
+D43 native acceptance remains held and unproved. Issue 123 remains paused; existing private Pages holds and every unrelated acceptance task remain in PLAN/TODO. Prior WORK bytes are retained exactly in the private external delivery ledger, SHA256 `73c732904e341a330c34f225fbee2923923ee4481e8de7c6a21d56c68cb892fe`.

@@ -2,6 +2,13 @@
 this_file: CHANGELOG.md
 ---
 
+## 2026-11-13 — Issue 255 verified release qualification
+
+- [fontlab-grablab v1.1.14](https://github.com/fontlabcom/fontlab-grablab/releases/tag/v1.1.14) is released at `0de4c56f07605560309e47b774c8060a246141ce`. Reviewed main/tag delivery, applicable CI and actual downloads match the qualified artifacts.
+- The F5/F6 and Save consumers, native smoke example and guarded Grab example use Fly; the wheel remains library-only.
+- 206 runtime tests and all four complete changed-module gates pass (grab.py: 85.98% statements, 82.32% branches; the other three modules: 100%). All 36 documentation tests and exact 50-file parity pass. Genuine wheel/sdist ordinary cohorts each contain 29 compatible packages and match all 7 installed payload files; eight extracted-sdist consumer cases use stand-ins. Normal main/tag hooks, CI and actual downloads are qualified.
+- Ordinary external installation is qualified; installed FontLab/native acceptance remains unproved under D43. Menu scripts and the smoke example are sdist/source payloads. Native acceptance must execute the published sdist example against the genuine installed GrabLab 1.1.14 wheel and assert that library imports resolve to that wheel.
+
 ## 2026-11-13 — Fly imports for authored consumers (Issue 255)
 
 - Route the F5/F6 and Save scripts, native smoke example and guarded Grab example
