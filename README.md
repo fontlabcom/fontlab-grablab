@@ -27,6 +27,10 @@ The product guide starts at [src_docs/md/index.md](src_docs/md/index.md). Build 
 Install `fontlab-grablab` for the `grablab` namespace, alongside `fontlab-fontlabapp>=1.2.0`. Python 3.11+ and native FontLab
 APIs are required for capture. Importing `grablab` itself is host-free; requesting Grab loads native APIs.
 
+The retained menu scripts and native smoke example use `fontlab-fly>=1.3.0` for App and native Qt access.
+Install Fly alongside GrabLab to run those consumers; the source installer declares it. The library-only wheel
+keeps App as its runtime dependency. GrabLab itself remains available through `grablab`.
+
 ```python
 from grablab import Grab
 capture = Grab(grab_canvas=False, grab_screens=False)
@@ -210,8 +214,8 @@ element](https://www.w3.org/TR/SVG2/embedded.html#ImageElement).
 
 The source sdist includes the four current `Scripts/GrabLab` scripts and
 `install.vfpy`; the wheel installs only the library. The source installer declares
-App >=1.2.0 and `pyobjc-framework-Quartz>=10; sys_platform == 'darwin'` for the
-macOS F5/F6 hotkey script. App's optional `hotkeys` extra remains available;
+App >=1.2.0, Fly >=1.3.0 for the authored consumers, and
+`pyobjc-framework-Quartz>=10; sys_platform == 'darwin'` for the macOS F5/F6 hotkey script. App's optional `hotkeys` extra remains available;
 the linked installer metadata needs the explicit Quartz requirement. See
 [DEPENDENCIES.md](DEPENDENCIES.md) for its metadata boundary.
 

@@ -2,6 +2,31 @@
 this_file: CHANGELOG.md
 ---
 
+## 2026-11-13 — Fly imports for authored consumers (Issue 255)
+
+- Route the F5/F6 and Save scripts, native smoke example and guarded Grab example
+  through Fly App/Qt aliases. Preserve App wildcard exports, deferred Save capture,
+  hotkey timestamp/modal/canvas behavior and smoke cleanup. Library imports stay
+  canonical; GrabLab itself still uses `grablab`.
+- Declare `fontlab-fly>=1.3.0` in the source installer's consumer requirements,
+  alongside App and Darwin Quartz. The library-only wheel keeps its App dependency;
+  shared `install.vfpy` bytes and historical provenance remain unchanged.
+- Eight new offline consumer cases failed before migration. All 206 runtime tests
+  pass on arm64 CPython 3.11.14 afterward, including owned success/failure cleanup
+  and installer metadata/argv checks. Each complete changed production module
+  passes the 80% statement/branch gate with zero exclusions: hotkey/save/smoke
+  100%; grab.py 85.98% statements and 82.32% branches. Ruff retains the same 31
+  inherited findings; none added. Locked external docs preview and all 36 docs
+  tests pass. This qualifies source and stand-ins, not native capture or artifacts.
+- Ordinary Fly 1.3.0/App 1.2.15 imports preserve App and PrefLib/hotkey module
+  identity. Native Qt identity uses a stand-in with `__spec__ = None`; no native
+  provider or real handler was activated. GrabLab remains source-only in this probe.
+- Independent source review reports SPEC PASS / QUALITY PASS. Controller reruns
+  pass 206 runtime tests and all four strict module gates; the exact-lock docs
+  build, 36 documentation tests and 50-file clean-rebuild parity pass. Final
+  containing-commit output, artifact installation and native proof remain separate.
+
+
 ## 2026-11-12 — D46 documentation pass (Issue 250)
 
 - Landed on `main` this session: `e3644bd` (2026-11-10 entry), `e71be0f` (historical helper dispositions, 2026-11-11), `3d5209b` (install-contract fake matches installed App metadata, owner change) and `3022a89` (TODO: decide whether Grablab joins the `install.vfpy` sync set). No source changed in this pass.

@@ -528,6 +528,9 @@
 <h1 id="grablab">GrabLab</h1>
 <p>Install <code>fontlab-grablab</code> for the <code>grablab</code> namespace, alongside <code>fontlab-fontlabapp&gt;=1.2.0</code>. Python 3.11+ and native FontLab
 APIs are required for capture. Importing <code>grablab</code> itself is host-free; requesting Grab loads native APIs.</p>
+<p>The retained menu scripts and native smoke example use <code>fontlab-fly&gt;=1.3.0</code> for App and native Qt access.
+Install Fly alongside GrabLab to run those consumers; the source installer declares it. The library-only wheel
+keeps App as its runtime dependency. GrabLab itself remains available through <code>grablab</code>.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">grablab</span><span class="w"> </span><span class="kn">import</span> <span class="n">Grab</span>
 <span class="n">capture</span> <span class="o">=</span> <span class="n">Grab</span><span class="p">(</span><span class="n">grab_canvas</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">grab_screens</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="n">capture</span><span class="o">.</span><span class="n">newGrab</span><span class="p">()</span>

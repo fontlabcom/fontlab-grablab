@@ -553,10 +553,10 @@
 <h2 id="source-installation-and-retained-history-2026-11-06">Source installation and retained history — 2026-11-06</h2>
 <p>The source sdist includes the four current <code>Scripts/GrabLab</code> scripts and
 <code>install.vfpy</code>; the wheel installs only the library. The source installer declares
-App &gt;=1.2.0 and <code>pyobjc-framework-Quartz&gt;=10; sys_platform == 'darwin'</code> for the
-macOS F5/F6 hotkey script. App's optional <code>hotkeys</code> extra remains available;
+App &gt;=1.2.0, Fly &gt;=1.3.0 for the authored consumers, and
+<code>pyobjc-framework-Quartz&gt;=10; sys_platform == 'darwin'</code> for the macOS F5/F6 hotkey script. App's optional <code>hotkeys</code> extra remains available;
 the linked installer metadata needs the explicit Quartz requirement. See
-<a href="https://github.com/fontlabcom/fontlab-grablab/blob/090234b30453f425a6a3d5e423af428f0f9fa6fa/DEPENDENCIES.md">DEPENDENCIES.md</a> for its metadata boundary.</p>
+<a href="https://github.com/fontlabcom/fontlab-grablab/blob/main/DEPENDENCIES.md">DEPENDENCIES.md</a> for its metadata boundary.</p>
 <p>When uv is available, the source installer submits every declared requirement
 unchanged, including versions, markers and extras, to uv's standard resolver.
 Already satisfactory dependencies are retained without forced upgrades or reinstalls.

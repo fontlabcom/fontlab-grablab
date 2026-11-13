@@ -8,10 +8,10 @@ this_file: src_docs/md/installation.md
 
 The source sdist includes the four current `Scripts/GrabLab` scripts and
 `install.vfpy`; the wheel installs only the library. The source installer declares
-App >=1.2.0 and `pyobjc-framework-Quartz>=10; sys_platform == 'darwin'` for the
-macOS F5/F6 hotkey script. App's optional `hotkeys` extra remains available;
+App >=1.2.0, Fly >=1.3.0 for the authored consumers, and
+`pyobjc-framework-Quartz>=10; sys_platform == 'darwin'` for the macOS F5/F6 hotkey script. App's optional `hotkeys` extra remains available;
 the linked installer metadata needs the explicit Quartz requirement. See
-[DEPENDENCIES.md](https://github.com/fontlabcom/fontlab-grablab/blob/090234b30453f425a6a3d5e423af428f0f9fa6fa/DEPENDENCIES.md) for its metadata boundary.
+[DEPENDENCIES.md](https://github.com/fontlabcom/fontlab-grablab/blob/main/DEPENDENCIES.md) for its metadata boundary.
 
 When uv is available, the source installer submits every declared requirement
 unchanged, including versions, markers and extras, to uv's standard resolver.

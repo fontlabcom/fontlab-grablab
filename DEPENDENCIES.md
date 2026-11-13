@@ -8,6 +8,9 @@ this_file: DEPENDENCIES.md
 - pytest: regression tests; native host checks run separately.
 - fontlab-fontlabapp >=1.2.0: application/UI/preferences and the supported
   `qt.views.GlyphWindow` viewport adapter, including named-child lookup.
+- fontlab-fly >=1.3.0: retained menu scripts and the native smoke example access
+  App and native Qt through Fly aliases. This is a source-installer consumer
+  requirement; the library-only wheel keeps its direct App dependency.
 - Source installation explicitly requests `pyobjc-framework-Quartz>=10;
   sys_platform == 'darwin'` for the macOS F5/F6 hotkey script. App retains its
   optional `hotkeys` extra; the linked installer metadata writes Requires-Dist

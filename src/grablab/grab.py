@@ -595,7 +595,8 @@ class Grab(object):
 
 
 if __name__ == "__main__":
-    # from grablab.grab import Grab
+    from fly.ap import Application
+
     app = Application()
     Grab().grabAll()
     grab = Grab(grab_also_invisible=True, grab_screens_only=[0])

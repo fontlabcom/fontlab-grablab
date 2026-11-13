@@ -6,6 +6,15 @@ this_file: PLAN.md
 
 Issue 230 reconciliation is current. Issue 123 implementation remains paused; its acceptance backlog below is preserved, not resumed. Keep qualified Issue 207 candidates distinct from canonical source, ordinary installed artifacts, native acceptance and publication. Issue 210 defines the future plugin split; Issue 211 retains follow-up checks. The owner corrected the preparation catalogue reference to Issue 214.
 
+## Issue 255 consumer qualification
+
+The authored Fly import migration and script-only Fly prerequisite pass offline
+source checks. Obtain independent review, rerun controller gates and build docs
+from a reviewed containing commit. Qualify genuine wheel/sdist bytes, ordinary
+installed origins and consumer behavior before delivery/release claims. Keep the
+library's canonical App imports and the shared installer untouched; native D43
+and private Pages holds remain separate.
+
 ## Remaining native integration
 
 The Issue 131 screenshot and four-mode icon deliveries have dated, bounded receipts in CHANGELOG and WORK. Do not repeat them as unfinished implementation tasks.

@@ -8,6 +8,10 @@ this_file: src_docs/md/index.md
 Install `fontlab-grablab` for the `grablab` namespace, alongside `fontlab-fontlabapp>=1.2.0`. Python 3.11+ and native FontLab
 APIs are required for capture. Importing `grablab` itself is host-free; requesting Grab loads native APIs.
 
+The retained menu scripts and native smoke example use `fontlab-fly>=1.3.0` for App and native Qt access.
+Install Fly alongside GrabLab to run those consumers; the source installer declares it. The library-only wheel
+keeps App as its runtime dependency. GrabLab itself remains available through `grablab`.
+
 ```python
 from grablab import Grab
 capture = Grab(grab_canvas=False, grab_screens=False)

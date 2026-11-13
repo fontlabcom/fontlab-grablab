@@ -2,10 +2,10 @@
 """Run inside FontLab against installed packages; clean temporary capture files."""
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from fontlabapp import Application
-from fontlabapp.application.preflib import PrefLib
+from fly.ap import Application
+from fly.ap.application.preflib import PrefLib
 from grablab import Grab
-from PythonQt import QtGui
+from fly.qt import QtGui
 
 app = Application(with_ui=True, with_preflib=False)
 widget = QtGui.QWidget()

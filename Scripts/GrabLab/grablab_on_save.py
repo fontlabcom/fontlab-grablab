@@ -1,5 +1,6 @@
 #FLM: GrabLab: Screengrab on Save
-from fontlabapp import *
+# this_file: Scripts/GrabLab/grablab_on_save.py
+from fly.ap import *
 from grablab import Grab
 
 app.ui.menu.file.save_font.qaction.triggered.connect(

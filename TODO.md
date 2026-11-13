@@ -4,6 +4,9 @@ this_file: TODO.md
 
 # Open tasks
 
+- [ ] Independently review the Issue 255 Fly consumer migration and rerun controller source/docs gates on the reviewed containing commit.
+- [ ] Qualify Issue 255 genuine wheel/sdist payloads and ordinary installed consumers separately from source/stand-in tests before release and integration claims.
+
 - [ ] Qualify current native glyph viewport capture against the matching App artifact; keep SVG/icon mode and restoration contracts.
 - [ ] Qualify genuine distributions and owned native capture/rendering separately; preserve archived source and existing input provenance.
 - [ ] Run the exact repository checks on the integrated source, obtain independent review, commit/push the scoped milestone and verify its remote head.

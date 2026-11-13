@@ -41,7 +41,7 @@ FontLab, and don't close fonts from Python, because that has crashed the host.
 - Capture calls temporarily change OpenGL, outline thickness, pixel rendering and the dark-glyph preference. Every change is restored in `finally`, including alternative-view toggles. Any new capture path needs a failure-path restoration test.
 - Requires `fontlab-fontlabapp>=1.2.0`; its supported `qt.views.GlyphWindow` adapter resolves direct and named-child viewports. Use a qualified ordinary App artifact in isolated acceptance environments.
 - `MIGRATION.json` and the retained BSD-3-Clause notices record the source files. Preserve its Git-history recovery revision and hashes; do not restore the removed archive into current source.
-- Source sdists include the four current `Scripts/GrabLab` scripts and byte-exact `install.vfpy`; wheels remain library-only. The source override explicitly requests App >=1.2.0 and Darwin Quartz >=10. With uv, the installer resolves the full declared requirement list; its no-uv fallback remains presence-only; native capture/installation and private Pages remain separate and held as applicable.
+- Source sdists include the four current `Scripts/GrabLab` scripts and byte-exact `install.vfpy`; wheels remain library-only. The source override explicitly requests App >=1.2.0, Fly >=1.3.0 for authored consumers and Darwin Quartz >=10. The library-only wheel keeps App as its runtime dependency. With uv, the installer resolves the full declared requirement list; its no-uv fallback remains presence-only; native capture/installation and private Pages remain separate and held as applicable.
 
 ## Commands
 

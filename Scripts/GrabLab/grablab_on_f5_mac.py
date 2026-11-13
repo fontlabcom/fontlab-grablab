@@ -1,8 +1,9 @@
 #FLM: GrabLab: Screengrab on F5/F6 Mac
+# this_file: Scripts/GrabLab/grablab_on_f5_mac.py
 
-from fontlabapp import *
+from fly.ap import *
 from grablab import Grab
-from fontlabapp.hotkey import HotkeyManager
+from fly.ap.hotkey import HotkeyManager
 import os, time
 
 def set_timestamp():

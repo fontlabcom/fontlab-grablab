@@ -14,7 +14,8 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 APP = "fontlab-fontlabapp>=1.2.0"
 QUARTZ = "pyobjc-framework-Quartz>=10; sys_platform == 'darwin'"
-REQUIRES = [APP, QUARTZ]
+FLY = "fontlab-fly>=1.3.0"
+REQUIRES = [APP, FLY, QUARTZ]
 
 
 def denied(*args, **kwargs):
@@ -55,7 +56,7 @@ def test_source_install_declarations_and_sdist_inputs_are_explicit():
 
 
 @pytest.mark.parametrize("uv,status", [(None, 0), ("fake-uv", 0), ("fake-uv", 1)])
-def test_source_install_when_quartz_missing_then_exact_metadata_command_or_failure(
+def test_source_install_when_consumer_dependencies_missing_then_exact_metadata_command_or_failure(
     installer, monkeypatch, capsys, uv, status
 ):
     i = installer
