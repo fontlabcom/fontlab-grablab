@@ -122,8 +122,8 @@ def test_update_when_owned_then_stale_files_removed_and_foreign_files_kept(insta
 
 
 @pytest.mark.parametrize("conflict", ["script", "category-link"])
-def test_main_when_script_path_taken_then_reinstalled_and_link_target_preserved(installer, tmp_path, conflict):
-    """Scripts are always reinstalled: a file at a script path is replaced, a folder link becomes a real folder."""
+def test_main_when_script_path_taken_then_foreign_payload_is_preserved(installer, tmp_path, conflict):
+    """Keep unlogged foreign files and never write through a directory link."""
     i = installer
     data = i.data_dir()
     outside = tmp_path / "foreign"
@@ -137,9 +137,18 @@ def test_main_when_script_path_taken_then_reinstalled_and_link_target_preserved(
         script.parent.parent.mkdir(parents=True)
         script.parent.symlink_to(outside, target_is_directory=True)
     i.main()
-    assert script.read_bytes() == (i.SOURCE / "Scripts/Group/One.py").read_bytes()
+    state = i.installed()[EXT_ID]
+    if conflict == "script":
+        assert script.read_bytes() == b"stale"
+        assert str(script) in state["kept"] and str(script) not in state["files"]
+    else:
+        assert script.read_bytes() == (i.SOURCE / "Scripts/Group/One.py").read_bytes()
     assert not script.parent.is_symlink()
     assert sorted(p.name for p in outside.iterdir()) == ["keep"], "A linked folder's target is never written"
+    i.uninstall(EXT_ID)
+    assert (outside / "keep").read_bytes() == b"foreign"
+    if conflict == "script":
+        assert script.read_bytes() == b"stale", "Uninstall must not adopt a kept foreign file"
 
 
 def test_main_when_directory_at_script_path_then_refuses(installer):

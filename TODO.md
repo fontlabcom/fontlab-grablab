@@ -2,6 +2,13 @@
 this_file: TODO.md
 ---
 
+## Shared installer qualification — 2026-11-15
+
+- [ ] Review and deliver the shared-installer candidate through fresh-main reconciliation, required gates, exact-SHA CI and genuine release/download qualification.
+- [ ] After admission, verify installed provider/consumer identity and the applicable Script/Extension/native workflows without clearing existing holds by inference.
+
+
+
 # Open tasks
 
 - [ ] Issue 255: After explicit D43 recovery and admission, qualify matching installed App/Fly/GrabLab lifecycle, F5/F6 and Save behavior, native glyph capture and restoration; execute the published sdist example examples/native_smoke.py against the genuine installed GrabLab 1.1.14 wheel, asserting library imports resolve to that wheel and recording loaded paths.

@@ -2,6 +2,14 @@
 this_file: WORK.md
 ---
 
+## 2026-11-15 — Shared installer source alignment
+
+Copied the reviewed shared installer exactly: dependency constraints and managed origins remain protected; inactive conditional dependencies are filtered before sibling execution in the resolver target Python. FontLab imports remain standard-library-only. Package identity, runtime APIs, dependency declarations, scripts, bundles and legal files are unchanged. Existing source-archive installer selection is retained. GrabLab contracts now require no-uv constraint refusal before script changes, preserve unlogged foreign scripts through uninstall, and verify managed-origin pins and declared optional metadata.
+
+Focused checks: 46 passed in 0.40s. This qualifies the local source candidate only. Independent review, combined-main/full delivery gates, genuine release/downloads, installed provider closure and admitted FontLab/native workflows remain separate. No owner-folder installation or native operation ran.
+
+
+
 # Current round — Issue 255 post-release reconciliation
 
 [fontlab-grablab v1.1.14](https://github.com/fontlabcom/fontlab-grablab/releases/tag/v1.1.14) is qualified at `0de4c56f07605560309e47b774c8060a246141ce`.

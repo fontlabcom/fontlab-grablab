@@ -1,6 +1,7 @@
 # this_file: tests/test_install_contract.py
 """Source installer declarations and owned execution; no host/process/network effects."""
 
+import json
 import runpy
 import socket
 import subprocess
@@ -43,7 +44,16 @@ def installer(tmp_path, monkeypatch):
     globals_["UV_CANDIDATES"] = ()
     monkeypatch.setattr(globals_["shutil"], "which", lambda name: None)
     assert not data.exists(), "Import must not initialize an installation"
-    return SimpleNamespace(**globals_)
+    marker_python = source / "marker-python"
+    marker_python.write_text("owned interpreter fixture")
+    return SimpleNamespace(marker_python=marker_python, **globals_)
+
+
+def managed_app(site, version):
+    info = site / f"fontlab_fontlabapp-{version}.dist-info"
+    info.mkdir(parents=True)
+    (info / "METADATA").write_text(f"Name: fontlab-fontlabapp\nVersion: {version}\n")
+    (info / "INSTALLER").write_text("install.vfpy\n")
 
 
 def test_source_install_declarations_and_sdist_inputs_are_explicit():
@@ -60,24 +70,32 @@ def test_source_install_when_consumer_dependencies_missing_then_exact_metadata_c
     installer, monkeypatch, capsys, uv, status
 ):
     i = installer
-    calls = []
-
-    def distribution(name):
-        if i.norm(name) != i.norm("fontlab-fontlabapp"):
-            raise i.metadata.PackageNotFoundError(name)
-        # Installed earlier from its sibling checkout, so uv must not look it up.
-        return SimpleNamespace(version="1.2.0", read_text=lambda f: "install.vfpy\n" if f == "INSTALLER" else None)
+    calls, constraints = [], []
 
     def fake_run(command, **kwargs):
-        assert command[0] == "fake-uv" and command[1:3] == ["pip", "install"]
+        assert command[0] == "fake-uv"
         calls.append(command)
+        if command[1] == "run":
+            assert json.loads(command[-1]) == REQUIRES
+            return SimpleNamespace(returncode=0, stdout=json.dumps(
+                {"requires": REQUIRES, "python": str(i.marker_python)}))
+        assert command[1:3] == ["pip", "install"]
+        constraints.append(Path(command[command.index("--constraints") + 1]).read_text())
         return SimpleNamespace(returncode=status, stdout="owned uv result")
 
-    monkeypatch.setattr(i.metadata, "distribution", distribution)
     monkeypatch.setattr(subprocess, "run", fake_run)
     monkeypatch.setitem(i.main.__globals__, "find_uv", lambda: uv)
     python = i.data_dir() / ".venv/bin/python"
     monkeypatch.setitem(i.main.__globals__, "ensure_venv", lambda *args: python)
+    if not uv:
+        with pytest.raises(RuntimeError, match="Install uv to verify"):
+            i.main()
+        assert not (i.data_dir() / "Scripts").exists()
+        assert not i.site_dir(i.data_dir()).exists()
+        assert i.read_log(i.data_dir() / "Extensions/com.fontlab.grablab")[-1]["action"] == "failed"
+        assert not calls and "Installed " not in capsys.readouterr().out
+        return
+    managed_app(i.site_dir(i.data_dir()), "1.2.0")
     if status:
         with pytest.raises(RuntimeError, match="exit 1"):
             i.main()
@@ -85,15 +103,25 @@ def test_source_install_when_consumer_dependencies_missing_then_exact_metadata_c
         i.main()
     site = i.site_dir(i.data_dir())
     metadata = (site / "fontlab_grablab-1.2.3.dist-info/METADATA").read_text()
+    optional = tomllib.loads((i.SOURCE / "pyproject.toml").read_text())["project"]["optional-dependencies"]
+    expected = [*REQUIRES, *[
+        f'{req} ; extra == "{extra}"' for extra, values in optional.items() for req in values
+    ]]
     assert [line for line in metadata.splitlines() if line.startswith("Requires-Dist:")] == [
-        "Requires-Dist: " + req for req in REQUIRES]
-    assert "Provides-Extra:" not in metadata
+        "Requires-Dist: " + req for req in expected]
+    assert [line for line in metadata.splitlines() if line.startswith("Provides-Extra:")] == [
+        "Provides-Extra: " + extra for extra in optional]
     records = i.read_log(i.data_dir() / "Extensions/com.fontlab.grablab")
     assert records[0]["requires"] == REQUIRES
-    if uv:
-        assert calls == [[uv, "pip", "install", "--link-mode=copy", "--python", str(python)] + REQUIRES]
-    else:
-        assert not calls and "Missing dependencies (install uv" in capsys.readouterr().out
+    assert len(calls) == 2 and calls[0][1:5] == ["run", "--no-project", "--quiet", "--python"]
+    assert calls[0][5] == str(python)
+    final = calls[-1]
+    assert final[:6] == [uv, "pip", "install", "--link-mode=copy", "--python", str(python)]
+    assert final[-len(REQUIRES):] == REQUIRES
+    assert sorted(constraints[0].splitlines()) == ["fontlab-fontlabapp==1.2.0", "fontlab-grablab==1.2.3"]
+    for local in ("fontlab-fontlabapp", "fontlab-grablab"):
+        for flag in ("--no-binary", "--only-binary"):
+            assert any(final[index:index + 2] == [flag, local] for index in range(len(final)))
     if status:
         assert records[-1]["action"] == "failed" and "owned uv result" in records[-1]["error"]
     else:
@@ -101,12 +129,20 @@ def test_source_install_when_consumer_dependencies_missing_then_exact_metadata_c
     assert (i.SOURCE / "src/grablab/__init__.py").read_text() == "VALUE = 42\n"
 
 
-def test_existing_presence_only_fast_path_is_retained_without_uv(installer, monkeypatch, capsys):
+def test_no_uv_when_constraints_present_then_refuses_before_installation(installer, monkeypatch, capsys):
     i = installer
     monkeypatch.setattr(i.metadata, "distribution", lambda name: SimpleNamespace(version="0.0.0"))
-    assert i.missing(REQUIRES) == [], "Known limit: presence does not validate installed versions"
-    i.main()
-    assert "Missing dependencies" not in capsys.readouterr().out
+    with pytest.raises(RuntimeError, match="Install uv to verify"):
+        i.missing(REQUIRES)
+    sentinel = i.data_dir() / "Scripts/foreign.py"
+    sentinel.parent.mkdir(parents=True)
+    sentinel.write_bytes(b"owner content")
+    with pytest.raises(RuntimeError, match="Install uv to verify"):
+        i.main()
+    assert sentinel.read_bytes() == b"owner content"
+    assert list(sentinel.parent.iterdir()) == [sentinel]
+    assert not i.site_dir(i.data_dir()).exists()
+    assert "Installed " not in capsys.readouterr().out
 
 
 @pytest.mark.parametrize("version", ["0.0.0", "99.0.0"])
@@ -115,16 +151,26 @@ def test_uv_when_distributions_present_then_resolves_complete_requirements(
     installer, monkeypatch, tmp_path, version, python_route
 ):
     i = installer
-    monkeypatch.setattr(i.metadata, "distribution", lambda name: SimpleNamespace(version=version))
-    calls = []
-    monkeypatch.setitem(i.main.__globals__, "run", lambda cmd: (
-        calls.append(cmd) or SimpleNamespace(returncode=0, stdout="resolved")))
+    managed_app(tmp_path, version)
+    calls, constraints = [], []
+    def fake_run(command):
+        calls.append(command)
+        if command[1] == "run":
+            return SimpleNamespace(returncode=0, stdout=json.dumps(
+                {"requires": REQUIRES, "python": str(i.marker_python)}))
+        constraints.append(Path(command[command.index("--constraints") + 1]).read_text())
+        return SimpleNamespace(returncode=0, stdout="resolved")
+    monkeypatch.setitem(i.main.__globals__, "run", fake_run)
     python = tmp_path / "venv/bin/python" if python_route else None
     i.install_dependencies(tmp_path, REQUIRES, "owned-uv", python)
-    target = ["--python", str(python)] if python else [
-        "--python", i.python_requests()[1], "--target", str(tmp_path)]
-    assert calls == [["owned-uv", "pip", "install", "--link-mode=copy"] + target + REQUIRES]
-    assert "--upgrade" not in calls[0] and "--reinstall" not in calls[0]
+    target = ["--python", str(python or i.marker_python)]
+    if not python:
+        target += ["--target", str(tmp_path)]
+    assert calls[0][5] == str(python or i.python_requests()[1])
+    assert calls[-1][:4 + len(target)] == ["owned-uv", "pip", "install", "--link-mode=copy"] + target
+    assert calls[-1][-len(REQUIRES):] == REQUIRES
+    assert constraints == [f"fontlab-fontlabapp=={version}\n"]
+    assert "--upgrade" not in calls[-1] and "--reinstall" not in calls[-1]
 
 
 @pytest.mark.parametrize("requirements", [
@@ -136,10 +182,19 @@ def test_uv_when_marker_or_extra_then_preserves_original_declaration(
     i = installer
     monkeypatch.setattr(i.metadata, "distribution", denied)
     calls = []
-    monkeypatch.setitem(i.main.__globals__, "run", lambda cmd: (
-        calls.append(cmd) or SimpleNamespace(returncode=0, stdout="resolved")))
+    def fake_run(command):
+        calls.append(command)
+        if command[1] == "run":
+            return SimpleNamespace(returncode=0, stdout=json.dumps(
+                {"requires": [], "python": str(i.marker_python)}))
+        return SimpleNamespace(returncode=0, stdout="resolved")
+    monkeypatch.setitem(i.main.__globals__, "run", fake_run)
     i.install_dependencies(tmp_path, requirements, "owned-uv", tmp_path / "python")
-    assert calls[0][-len(requirements):] == requirements
+    assert calls[-1][-len(requirements):] == requirements
+    if ";" in requirements[0]:
+        assert len(calls) == 2 and json.loads(calls[0][-1]) == requirements
+    else:
+        assert len(calls) == 1
 
 
 @pytest.mark.parametrize("uv", [None, "owned-uv"])
