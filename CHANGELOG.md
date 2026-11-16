@@ -2,6 +2,15 @@
 this_file: CHANGELOG.md
 ---
 
+## Unreleased
+
+- `install.vfpy` is now the short fontlab-instamix stub. It installs
+  fontlab-instamix from PyPI when it is missing, then installs this checkout from
+  its `[tool.fontlab-install]` table. The large legacy installer is gone.
+- `tests/test_install_contract.py` keeps the declaration check and tests the stub and sdist;
+  `tests/test_install_lifecycle.py` (legacy installer internals only) is removed.
+- README describes the stub install.
+
 ## 2026-11-15 — Shared installer source alignment
 
 Copied the reviewed shared installer exactly: dependency constraints and managed origins remain protected; inactive conditional dependencies are filtered before sibling execution in the resolver target Python. FontLab imports remain standard-library-only. Package identity, runtime APIs, dependency declarations, scripts, bundles and legal files are unchanged. Existing source-archive installer selection is retained. GrabLab contracts now require no-uv constraint refusal before script changes, preserve unlogged foreign scripts through uninstall, and verify managed-origin pins and declared optional metadata.
