@@ -10,6 +10,12 @@ Review the exact shared-installer candidate against fresh main, run the required
 
 # Forward plan
 
+## Functional work order — 2026-11-14
+
+Prioritize useful glyph, SVG and UI capture with correct restoration and matching App lifecycle behavior. Reconcile Fly/App consumer routes and the pending installer synchronization decision while preserving icon modes and owned capture fixtures.
+
+Use small smoke checks and focused regressions for changed behavior and package boundaries. Keep the existing detailed acceptance tasks for a later testing pass; mandatory delivery hooks and current holds remain in force.
+
 Issue 230 reconciliation is current. Issue 123 implementation remains paused; its acceptance backlog below is preserved, not resumed. Keep qualified Issue 207 candidates distinct from canonical source, ordinary installed artifacts, native acceptance and publication. Issue 210 defines the future plugin split; Issue 211 retains follow-up checks. The owner corrected the preparation catalogue reference to Issue 214.
 
 ## Issue 255 remaining native acceptance

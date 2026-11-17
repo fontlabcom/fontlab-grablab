@@ -11,6 +11,8 @@ this_file: TODO.md
 
 # Open tasks
 
+- [ ] Reconcile capture/restoration and installer behavior with the matching App/Fly consumers; keep the installer synchronization decision and detailed installed/native capture pass open.
+
 - [ ] Issue 255: After explicit D43 recovery and admission, qualify matching installed App/Fly/GrabLab lifecycle, F5/F6 and Save behavior, native glyph capture and restoration; execute the published sdist example examples/native_smoke.py against the genuine installed GrabLab 1.1.14 wheel, asserting library imports resolve to that wheel and recording loaded paths.
 
 

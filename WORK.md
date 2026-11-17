@@ -12,6 +12,12 @@ Focused checks: 46 passed in 0.40s. This qualifies the local source candidate on
 
 # Current round — Issue 255 post-release reconciliation
 
+## 2026-11-14 — Functional work order documented
+
+Updated AGENTS, PLAN and TODO to prioritize useful functional changes and compatible package boundaries, with detailed testing deferred. Existing backlog and prior records are retained. Documentation preservation and policy consistency were checked; no runtime, installed or native checks ran in this documentation-only pass.
+
+Next: reconcile capture/restoration and installer behavior with the matching App/Fly consumers; keep the installer synchronization decision and detailed installed/native capture pass open.
+
 [fontlab-grablab v1.1.14](https://github.com/fontlabcom/fontlab-grablab/releases/tag/v1.1.14) is qualified at `0de4c56f07605560309e47b774c8060a246141ce`.
 
 The F5/F6 and Save consumers, native smoke example and guarded Grab example use Fly; the wheel remains library-only.
