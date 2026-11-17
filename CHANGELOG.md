@@ -4,6 +4,7 @@ this_file: CHANGELOG.md
 
 ## Unreleased
 
+- Task-list cleanup (Issue 258): closed the shared-installer rows and the installer-sync-set decision. Evidence: `install.vfpy` is the fontlab-instamix stub (entry below); v1.1.16 is released at `90940e7`. Dropped the genuine-distribution matrix and docs-lineage rows as paperwork; test-infrastructure rows moved to the end of TODO.md.
 - `install.vfpy` is now the short fontlab-instamix stub. It installs
   fontlab-instamix from PyPI when it is missing, then installs this checkout from
   its `[tool.fontlab-install]` table. The large legacy installer is gone.

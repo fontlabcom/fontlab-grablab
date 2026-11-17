@@ -2,14 +2,6 @@
 this_file: PLAN.md
 ---
 
-## Shared installer: remaining delivery qualification — 2026-11-15
-
-Review the exact shared-installer candidate against fresh main, run the required combined package gates, and qualify genuine release/archive/download inputs. Preserve the existing package-specific dependency and distribution contracts. Then qualify the coherent provider/consumer and Script/Extension cohort through the admitted root installer and native lane; source checks do not establish those outcomes. Keep every existing ownership, native, publication and paused-work limit.
-
-
-
-# Forward plan
-
 ## Functional work order — 2026-11-14
 
 Prioritize useful glyph, SVG and UI capture with correct restoration and matching App lifecycle behavior. Reconcile Fly/App consumer routes and the pending installer synchronization decision while preserving icon modes and owned capture fixtures.
