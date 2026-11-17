@@ -4,6 +4,10 @@ this_file: CHANGELOG.md
 
 ## Unreleased
 
+- `install.vfpy` is now the stub from fontlab-python-instamix 1.0.15. It replaces an
+  installed instamix older than 1.0.13 and puts the old copy back if the upgrade
+  fails; linked checkouts and local builds are kept. A download that fails for
+  lack of root certificates (FontLab 9 for macOS) is retried with the system curl.
 - Task-list cleanup (Issue 258): closed the shared-installer rows and the installer-sync-set decision. Evidence: `install.vfpy` is the fontlab-instamix stub (entry below); v1.1.16 is released at `90940e7`. Dropped the genuine-distribution matrix and docs-lineage rows as paperwork; test-infrastructure rows moved to the end of TODO.md.
 - `install.vfpy` is now the short fontlab-instamix stub. It installs
   fontlab-instamix from PyPI when it is missing, then installs this checkout from

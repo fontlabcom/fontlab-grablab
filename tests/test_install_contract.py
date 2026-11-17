@@ -34,7 +34,7 @@ def test_source_install_declarations_and_sdist_inputs_are_explicit():
         "id": "com.fontlab.grablab", "dependencies": REQUIRES}
     assert {"Scripts", "install.vfpy"} <= set(
         project["tool"]["hatch"]["build"]["targets"]["sdist"]["only-include"])
-STUB_HEADER = b"#FLM: Install this package into FontLab (fontlab-instamix)\n"
+STUB_HEADER = b"#FLM: Install into FontLab with fontlab-instamix\n"
 REVERSE_DNS = re.compile(r"^[a-z][a-z0-9-]*(\.[a-z0-9][a-z0-9-]*)+$")  # instamix manifest.ID_PATTERN
 
 
@@ -43,7 +43,7 @@ def test_installer_when_read_then_is_instamix_stub():
     source = (ROOT / "install.vfpy").read_bytes()
     assert source.startswith(STUB_HEADER), "install.vfpy must be the instamix stub"
     assert b"bootstrap.install_project(__file__)" in source, "stub must hand off to instamix"
-    assert len(source.splitlines()) < 80, "stub must stay short; legacy installer is gone"
+    assert len(source.splitlines()) < 250, "stub must stay short; legacy installer is gone"
     canonical = canonical_stub()
     if canonical is not None:
         assert source == canonical, "install.vfpy must match instamix's canonical stub"
