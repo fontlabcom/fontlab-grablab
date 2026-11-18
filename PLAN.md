@@ -2,6 +2,13 @@
 this_file: PLAN.md
 ---
 
+## Issue 271 installer qualification
+
+Integrate the independently reviewed generated installer through existing full
+repository/hook gates; verify exact-SHA CI and archives, then qualify native
+macOS/Windows use when the serialized guard is available. Preserve owner files.
+
+
 ## Functional work order — 2026-11-14
 
 Prioritize useful glyph, SVG and UI capture with correct restoration and matching App lifecycle behavior. Reconcile Fly/App consumer routes and the pending installer synchronization decision while preserving icon modes and owned capture fixtures.

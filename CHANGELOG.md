@@ -2,6 +2,22 @@
 this_file: CHANGELOG.md
 ---
 
+## 2026-11-18 — Issue 271 documentation mirror repair
+
+Mirrored the current README installer instructions into the authored documentation.
+The unchanged strict docs build and all 36 documentation tests pass (8.669s);
+the complete README inclusion assertion now passes. README, runtime, installer and
+test bytes are preserved. Independent review, combined delivery gates, exact-SHA CI
+and native qualification remain separate.
+
+## 2026-11-18 — Issue 271 installer source alignment
+
+The generated installer matches the reviewed Instamix 1.0.18 template: it requires
+conflict preflight support, selects compatible local wheels and reports completed
+work before an installation failure. Exact reviewed-template byte parity and import-sentinel/wheel-order smoke checks pass. Existing focused installer tests pass (exit 0, 0.79 seconds).
+Consumer integration, released archives and native execution remain separate checks.
+
+
 ## Unreleased
 
 - `install.vfpy` is now the stub from fontlab-python-instamix 1.0.15. It replaces an

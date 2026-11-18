@@ -2,6 +2,23 @@
 this_file: WORK.md
 ---
 
+## 2026-11-18 — Issue 271 documentation mirror repair
+
+Mirrored the current README installer instructions into the authored documentation.
+The unchanged strict docs build and all 36 documentation tests pass (8.669s);
+the complete README inclusion assertion now passes. README, runtime, installer and
+test bytes are preserved. Independent review, combined delivery gates, exact-SHA CI
+and native qualification remain separate.
+
+## 2026-11-18 — Issue 271 generated installer candidate
+
+Regenerated `install.vfpy` with Instamix 1.0.18, preserving project declarations and
+runtime source. Exact reviewed-template byte parity and import-sentinel/wheel-order smoke checks pass. Existing focused installer tests pass (exit 0, 0.79 seconds).
+Task-owned graph impact/change analysis cannot resolve an index; structural caller
+checks supplement this unavailable evidence. Full repository delivery gates,
+independent cohort review and native qualification remain pending. No owner install ran.
+
+
 ## 2026-11-15 — Shared installer source alignment
 
 Copied the reviewed shared installer exactly: dependency constraints and managed origins remain protected; inactive conditional dependencies are filtered before sibling execution in the resolver target Python. FontLab imports remain standard-library-only. Package identity, runtime APIs, dependency declarations, scripts, bundles and legal files are unchanged. Existing source-archive installer selection is retained. GrabLab contracts now require no-uv constraint refusal before script changes, preserve unlogged foreign scripts through uninstall, and verify managed-origin pins and declared optional metadata.
