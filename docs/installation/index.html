@@ -557,12 +557,14 @@ App &gt;=1.2.0, Fly &gt;=1.3.0 for the authored consumers, and
 <code>pyobjc-framework-Quartz&gt;=10; sys_platform == 'darwin'</code> for the macOS F5/F6 hotkey script. App's optional <code>hotkeys</code> extra remains available;
 the linked installer metadata needs the explicit Quartz requirement. See
 <a href="https://github.com/fontlabcom/fontlab-grablab/blob/main/DEPENDENCIES.md">DEPENDENCIES.md</a> for its metadata boundary.</p>
-<p>When uv is available, the source installer submits every declared requirement
-unchanged, including versions, markers and extras, to uv's standard resolver.
-Already satisfactory dependencies are retained without forced upgrades or reinstalls.
-Without uv, the existing fallback checks distribution presence only: it reports
-missing dependencies but does not enforce versions, markers or extras. Owned tests
-do not establish native installation.</p>
+<p>To install into FontLab 9, open <code>install.vfpy</code> from a checkout in FontLab
+(double-click it or drop it onto FontLab), then restart FontLab. The file is a
+short stub that hands the work to
+<a href="https://github.com/fontlabcom/fontlab-python-instamix">fontlab-instamix</a>; if
+instamix is not installed yet, the stub installs it from PyPI first. Instamix
+installs the package and its declared dependencies and records the install under
+the extension id <code>com.fontlab.grablab</code>. Owned tests do not establish native
+installation.</p>
 <p>Glyph-window capture uses App's supported adapter for both direct and named-child
 viewports. Missing viewports raise <code>LookupError</code>; visibility preferences, viewport
 then window order, image-only returns and failure restoration remain unchanged.
