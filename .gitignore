@@ -12,3 +12,19 @@ uv.lock
 .superpowers/
 .worktrees/
 *.vfpyc
+
+# Python and macOS (pypitrust)
+*.py[cod]
+.eggs/
+build/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# Python and macOS (pypitrust)
+__version__.py
+_version.py
