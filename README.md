@@ -20,7 +20,17 @@ Keep runtime, ordinary installed artifacts, native workflows and published docum
 
 ## Documentation source and build
 
-The product guide starts at [src_docs/md/index.md](src_docs/md/index.md). Build with the separate hash-locked docs environment and `sh src_docs/build.sh`; run `python -m unittest discover -s tests_docs -v`. Every main commit qualifies source/output identity and byte parity. Private Pages configuration and publication remain owner-held.
+The [GrabLab guide](src_docs/md/index.md) uses fly-january 0.1.1 with the FontLab menu and footer. Build and test it from the repository root with Python 3.13:
+
+```sh
+uv venv --python 3.13 .local/docs-env
+. .local/docs-env/bin/activate
+uv pip install --require-hashes -r src_docs/requirements.txt
+sh src_docs/build.sh
+python -m unittest discover -s tests_docs -v
+```
+
+The strict build reads `src_docs/mkdocs.yml` and writes the tracked `docs/` site. Every main commit qualifies source/output identity and byte parity. Private Pages configuration and publication remain owner-held.
 
 # GrabLab
 

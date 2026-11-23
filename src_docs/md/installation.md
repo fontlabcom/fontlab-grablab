@@ -13,12 +13,14 @@ App >=1.2.0, Fly >=1.3.0 for the authored consumers, and
 the linked installer metadata needs the explicit Quartz requirement. See
 [DEPENDENCIES.md](https://github.com/fontlabcom/fontlab-grablab/blob/main/DEPENDENCIES.md) for its metadata boundary.
 
-When uv is available, the source installer submits every declared requirement
-unchanged, including versions, markers and extras, to uv's standard resolver.
-Already satisfactory dependencies are retained without forced upgrades or reinstalls.
-Without uv, the existing fallback checks distribution presence only: it reports
-missing dependencies but does not enforce versions, markers or extras. Owned tests
-do not establish native installation.
+To install into FontLab 9, open `install.vfpy` from a checkout in FontLab
+(double-click it or drop it onto FontLab), then restart FontLab. The file is a
+short stub that hands the work to
+[fontlab-instamix](https://github.com/fontlabcom/fontlab-python-instamix); if
+instamix is not installed yet, the stub installs it from PyPI first. Instamix
+installs the package and its declared dependencies and records the install under
+the extension id `com.fontlab.grablab`. Owned tests do not establish native
+installation.
 
 Glyph-window capture uses App's supported adapter for both direct and named-child
 viewports. Missing viewports raise `LookupError`; visibility preferences, viewport

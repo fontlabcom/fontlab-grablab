@@ -2,6 +2,12 @@
 this_file: WORK.md
 ---
 
+## 2026-11-23 — Documentation theme
+
+Migrated the strict ProperDocs build to fly-january 0.1.1 with FontLab chrome and the GrabLab menu label. All seven HTML pages load Fly assets. The asset manifest covers the five bundled Fly files and the two MaterialX stylesheets that Fly rescales. The installation page now matches the README’s Instamix instructions.
+
+`sh src_docs/build.sh` completed without warnings. A second clean build reproduced all 54 output files byte-for-byte. All 36 documentation tests and all 164 runtime tests passed. Browser verification remains with the orchestrator.
+
 ## 2026-11-15 — Shared installer source alignment
 
 Copied the reviewed shared installer exactly: dependency constraints and managed origins remain protected; inactive conditional dependencies are filtered before sibling execution in the resolver target Python. FontLab imports remain standard-library-only. Package identity, runtime APIs, dependency declarations, scripts, bundles and legal files are unchanged. Existing source-archive installer selection is retained. GrabLab contracts now require no-uv constraint refusal before script changes, preserve unlogged foreign scripts through uninstall, and verify managed-origin pins and declared optional metadata.

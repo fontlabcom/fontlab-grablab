@@ -41,4 +41,4 @@ Only conditional installer requirements use `packaging==26.3` in an external uv-
 
 ## Documentation build
 
-A separate Python 3.13 docs environment uses the 31-package hash lock at `src_docs/requirements.txt`: ProperDocs 1.6.7, MkDocs 1.6.1, MaterialX 10.1.8 and PyMdown 11.0.1. Search is the sole plugin; light fltheme26 assets provide the shared menu/footer. Runtime dependencies and locks remain separate.
+The Python 3.13 docs environment uses the hash lock at `src_docs/requirements.txt`. It pins fly-january 0.1.1, ProperDocs 1.6.7, MkDocs 1.6.1, MaterialX 10.1.8 and PyMdown Extensions 11.0.1. The `fly` plugin supplies FontLab chrome and routes `search` to MaterialX.

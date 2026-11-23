@@ -1,5 +1,4 @@
 
-
 <!doctype html>
 <html lang="en" class="no-js">
   <head>
@@ -33,12 +32,17 @@
       
     
     
+  
       <link rel="stylesheet" href="/fontlab-grablab/assets/stylesheets/main.314bbef5.min.css">
       
         
         <link rel="stylesheet" href="/fontlab-grablab/assets/stylesheets/palette.a45159b5.min.css">
       
     
+  <link rel="stylesheet" data-fly-photoswipe href="https://cdn.jsdelivr.net/npm/photoswipe@5.4.4/dist/photoswipe.css"
+      integrity="sha384-IfxC36XL/toUyJ939C73PcgMuRzAZuIzZxE38drsmO5p6jD7ei+Zx/1oA/0l8ysE" crossorigin="anonymous">
+  <link rel="stylesheet" href="/fontlab-grablab/assets/fly/fly.css?v=24c03d88bb">
+
     
 
     
@@ -56,12 +60,6 @@
       
     
     
-      <link rel="stylesheet" href="/fontlab-grablab/stylesheets/local.css">
-    
-      <link rel="stylesheet" href="https://i.fontlab.com/fltheme26/1.0.0/components.css">
-    
-      <link rel="stylesheet" href="https://i.fontlab.com/fltheme26/1.0.0/theme.css">
-    
     <script>__md_scope=new URL("/fontlab-grablab/",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -69,6 +67,17 @@
     
     
   
+  <script>try{if(sessionStorage.getItem("fly-l2")==="in"){document.documentElement.dataset.flyL2="in";sessionStorage.removeItem("fly-l2")}}catch(e){}</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,200,0,0&icon_names=arrow_back,arrow_forward,dark_mode,light_mode&display=block">
+  <script>try{document.fonts.load('20px "Material Symbols Outlined"',"arrow_backarrow_forwarddark_modelight_mode").then(function(f){if(f.length)document.documentElement.classList.add("fly-msym")})}catch(e){}</script>
+  <link rel="preconnect" href="https://use.typekit.net" crossorigin>
+  <link rel="preconnect" href="https://p.typekit.net" crossorigin>
+  <link rel="stylesheet" href="https://use.typekit.net/cmv5add.css" data-fly-font>
+  <link rel="stylesheet" href="https://use.typekit.net/cna4jfp.css" data-fly-font>
+  <link rel="stylesheet" href="https://use.typekit.net/wck5koo.css" data-fly-font>
   <script src="https://i.fontlab.com/menu/fontlab.js" defer></script>
 
   </head>
@@ -81,7 +90,7 @@
     
     
     
-    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" data-mx-topbar="glass">
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" data-mx-topbar="glass" class="fly-margin-left fly-chrome-fontlab">
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -97,9 +106,7 @@
     </div>
     
     
-  <fontlab-menu mode="light" site-label="GrabLab"
-                site-url="https://fontlabcom.github.io/fontlab-grablab/"
-                mobile-menu="materialx" mobile-search="materialx"></fontlab-menu>
+  <fontlab-menu mode="dark" site-label="GrabLab" site-url="https://fontlabcom.github.io/fontlab-grablab/" mobile-menu="materialx" mobile-search="materialx"></fontlab-menu>
   
       
 
@@ -247,12 +254,13 @@
   
   
   
+  
     <li class="md-nav__item">
       <a href="/fontlab-grablab/." class="md-nav__link">
         
   
   
-  <span class="md-ellipsis">
+  <span class="md-ellipsis" title="Index">
     
   
     Index
@@ -274,12 +282,13 @@
   
   
   
+  
     <li class="md-nav__item">
       <a href="/fontlab-grablab/installation/" class="md-nav__link">
         
   
   
-  <span class="md-ellipsis">
+  <span class="md-ellipsis" title="Installation">
     
   
     Installation
@@ -301,12 +310,13 @@
   
   
   
+  
     <li class="md-nav__item">
       <a href="/fontlab-grablab/capture-bundles/" class="md-nav__link">
         
   
   
-  <span class="md-ellipsis">
+  <span class="md-ellipsis" title="Capture Bundles">
     
   
     Capture Bundles
@@ -328,12 +338,13 @@
   
   
   
+  
     <li class="md-nav__item">
       <a href="/fontlab-grablab/svg-and-icons/" class="md-nav__link">
         
   
   
-  <span class="md-ellipsis">
+  <span class="md-ellipsis" title="Svg And Icons">
     
   
     Svg And Icons
@@ -355,12 +366,13 @@
   
   
   
+  
     <li class="md-nav__item">
       <a href="/fontlab-grablab/development-and-limits/" class="md-nav__link">
         
   
   
-  <span class="md-ellipsis">
+  <span class="md-ellipsis" title="Development And Limits">
     
   
     Development And Limits
@@ -382,12 +394,13 @@
   
   
   
+  
     <li class="md-nav__item">
       <a href="/fontlab-grablab/licence/" class="md-nav__link">
         
   
   
-  <span class="md-ellipsis">
+  <span class="md-ellipsis" title="Licence">
     
   
     Licence
@@ -417,6 +430,7 @@
                     
 
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
   
   
   
@@ -468,23 +482,10 @@
   
         <footer class="md-footer">
   
-  <div class="md-footer-meta md-typeset">
-    <div class="md-footer-meta__inner md-grid">
-      <div class="md-copyright">
   
-  
-    Made with
-    <a href="https://jaywhj.github.io/mkdocs-materialx/" target="_blank" rel="noopener">
-      MaterialX
-    </a>
-  
-</div>
-      
-    </div>
-  </div>
 </footer>
       
-  <fontlab-footer mode="light"></fontlab-footer>
+  <fontlab-footer mode="dark"></fontlab-footer>
 
     </div>
     <div class="md-dialog" data-md-component="dialog">
@@ -498,12 +499,12 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "/fontlab-grablab/", "code": null, "features": ["search.highlight", "content.code.copy"], "search": "/fontlab-grablab/assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "code.collapse": "Collapse", "code.download": "Download", "code.expand": "Expand remaining # lines", "code.select": "Toggle line selection", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
+  
       <script src="/fontlab-grablab/assets/javascripts/bundle.fc193f93.min.js"></script>
       
-        <script src="https://i.fontlab.com/fltheme26/1.0.0/basecoat.js"></script>
-      
-        <script src="https://i.fontlab.com/fltheme26/1.0.0/theme.js"></script>
-      
     
+  <script src="/fontlab-grablab/assets/fly/fly-bridge.js?v=86c9984233"></script>
+  <script type="module" src="/fontlab-grablab/assets/fly/fly.js?v=f51ac22526"></script>
+
   </body>
 </html>

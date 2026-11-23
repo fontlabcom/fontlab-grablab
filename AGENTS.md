@@ -116,7 +116,7 @@ installing into its user folder or publishing a site.
 
 ## Private source/build-only documentation
 
-Author pages under `src_docs/md` and use the separate hash-locked docs environment with `sh src_docs/build.sh`. Generated `docs` is immutable output. The main workflow qualifies direct source/output lineage and full ignored-output parity. Twelve private P/L operations remain owner-held; no Pages request or permission belongs here. Preserve runtime sources and native boundaries.
+Author pages under `src_docs/md`. Configure the fly-january 0.1.1 theme and FontLab chrome in `src_docs/mkdocs.yml`. Use the separate Python 3.13 environment from `src_docs/requirements.txt` and regenerate `docs/` with `sh src_docs/build.sh`. The main workflow qualifies direct source/output lineage and full ignored-output parity. Twelve private P/L operations remain owner-held; no Pages request or permission belongs here. Preserve runtime sources and native boundaries.
 
 ## Integration rounds
 
