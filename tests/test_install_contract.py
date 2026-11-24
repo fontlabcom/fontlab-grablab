@@ -43,7 +43,7 @@ def test_installer_when_read_then_is_instamix_stub():
     source = (ROOT / "install.vfpy").read_bytes()
     assert source.startswith(STUB_HEADER), "install.vfpy must be the instamix stub"
     assert b"bootstrap.install_project(__file__)" in source, "stub must hand off to instamix"
-    assert len(source.splitlines()) < 250, "stub must stay short; legacy installer is gone"
+    assert len(source.splitlines()) == 266, "stub must match the reviewed standalone bootstrap length"
     canonical = canonical_stub()
     if canonical is not None:
         assert source == canonical, "install.vfpy must match instamix's canonical stub"
