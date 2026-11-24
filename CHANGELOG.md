@@ -20,6 +20,8 @@ Consumer integration, released archives and native execution remain separate che
 
 ## Unreleased
 
+- The documentation requires fly-january 0.3.0 or later and builds with 0.3.0.
+
 - The PyPI project `fontlab-grablab` requires an owner-configured GitHub trusted publisher for `fontlabcom/fontlab-grablab`, workflow `release.yml`, environment `pypi`. PyPI records this publisher for both [v1.1.19 distributions](https://pypi.org/project/fontlab-grablab/1.1.19/#files).
 - Closed the source reconciliation for the App glyph viewport and Fly capture consumers (`090234b`, `fb981e3`). The v1.1.14 qualification recorded 206 tests and four module coverage checks (`9825e1d`).
 - Closed the repeated installer synchronization item. Issue 258 recorded the Instamix decision (`bc54205`), and the v1.1.19 source archive contains the reviewed 1.0.18 template from `f383b9b` byte-for-byte.
