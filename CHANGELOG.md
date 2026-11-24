@@ -20,6 +20,12 @@ Consumer integration, released archives and native execution remain separate che
 
 ## Unreleased
 
+- The PyPI project `fontlab-grablab` requires an owner-configured GitHub trusted publisher for `fontlabcom/fontlab-grablab`, workflow `release.yml`, environment `pypi`. PyPI records this publisher for both [v1.1.19 distributions](https://pypi.org/project/fontlab-grablab/1.1.19/#files).
+- Closed the source reconciliation for the App glyph viewport and Fly capture consumers (`090234b`, `fb981e3`). The v1.1.14 qualification recorded 206 tests and four module coverage checks (`9825e1d`).
+- Closed the repeated installer synchronization item. Issue 258 recorded the Instamix decision (`bc54205`), and the v1.1.19 source archive contains the reviewed 1.0.18 template from `f383b9b` byte-for-byte.
+- Closed Issue 271’s main integration, release CI and archive checks. The [release run](https://github.com/fontlabcom/fontlab-grablab/actions/runs/44418483962) passed at `0797733`. Both PyPI downloads match the GitHub release digests, and the source archive contains the installer and all four menu scripts.
+- Closed the installer guide mirror repair at `f383b9b`. The [documentation build and generated-output check](https://github.com/fontlabcom/fontlab-grablab/actions/runs/44417156065) passed for that source revision.
+
 - Site now uses the fly-january 0.2.1 theme (chrome: fontlab).
 - `install.vfpy` is now the stub from fontlab-python-instamix 1.0.15. It replaces an
   installed instamix older than 1.0.13 and puts the old copy back if the upgrade

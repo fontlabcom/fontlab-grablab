@@ -2,53 +2,12 @@
 this_file: WORK.md
 ---
 
-## 2026-11-23 — Documentation theme
+## 2026-11-24 — Release and planning review
 
-The docs environment pins fly-january 0.2.1. The adoption configured FontLab chrome and the GrabLab menu label. All seven HTML pages load Fly assets. The asset manifest covers the five bundled Fly files and the two MaterialX stylesheets that Fly rescales. The installation page now matches the README’s Instamix instructions.
+PyPI identifies `fontlabcom/fontlab-grablab`, `release.yml` and environment `pypi` as the trusted publisher of both v1.1.19 files. Both downloads match the GitHub release SHA-256 digests. The sdist installer and four menu scripts match the release source. The release workflow passed `actionlint`, and all three local release scripts passed `bash -n`.
 
-`sh src_docs/build.sh` completed without warnings. A second clean build reproduced all 54 output files byte-for-byte. All 36 documentation tests and all 164 runtime tests passed. Browser verification remains with the orchestrator.
+On the merged branch, `./test.sh` passed all 164 runtime tests. With fly-january 0.2.1, `python -m unittest discover -s tests_docs -v` ran 36 tests with 30 passes, four failures and two errors. The asset check rejects `fly-tokens.css`. Both it and `fly.css` differ from their recorded 0.1.1 hashes. The earlier 54-file reproducible build and 36 passing docs tests applied to 0.1.1.
 
-## 2026-11-18 — Issue 271 documentation mirror repair
+See [CHANGELOG.md](CHANGELOG.md) for the Issue 131 capture receipts and prior release checks, and [TODO.md](TODO.md) for open verification.
 
-Mirrored the current README installer instructions into the authored documentation.
-The unchanged strict docs build and all 36 documentation tests pass (8.669s);
-the complete README inclusion assertion now passes. README, runtime, installer and
-test bytes are preserved. Independent review, combined delivery gates, exact-SHA CI
-and native qualification remain separate.
-
-## 2026-11-18 — Issue 271 generated installer candidate
-
-Regenerated `install.vfpy` with Instamix 1.0.18, preserving project declarations and
-runtime source. Exact reviewed-template byte parity and import-sentinel/wheel-order smoke checks pass. Existing focused installer tests pass (exit 0, 0.79 seconds).
-Task-owned graph impact/change analysis cannot resolve an index; structural caller
-checks supplement this unavailable evidence. Full repository delivery gates,
-independent cohort review and native qualification remain pending. No owner install ran.
-
-
-## 2026-11-15 — Shared installer source alignment
-
-Copied the reviewed shared installer exactly: dependency constraints and managed origins remain protected; inactive conditional dependencies are filtered before sibling execution in the resolver target Python. FontLab imports remain standard-library-only. Package identity, runtime APIs, dependency declarations, scripts, bundles and legal files are unchanged. Existing source-archive installer selection is retained. GrabLab contracts now require no-uv constraint refusal before script changes, preserve unlogged foreign scripts through uninstall, and verify managed-origin pins and declared optional metadata.
-
-Focused checks: 46 passed in 0.40s. This qualifies the local source candidate only. Independent review, combined-main/full delivery gates, genuine release/downloads, installed provider closure and admitted FontLab/native workflows remain separate. No owner-folder installation or native operation ran.
-
-
-
-# Current round — Issue 255 post-release reconciliation
-
-## 2026-11-14 — Functional work order documented
-
-Updated AGENTS, PLAN and TODO to prioritize useful functional changes and compatible package boundaries, with detailed testing deferred. Existing backlog and prior records are retained. Documentation preservation and policy consistency were checked; no runtime, installed or native checks ran in this documentation-only pass.
-
-Next: reconcile capture/restoration and installer behavior with the matching App/Fly consumers; keep the installer synchronization decision and detailed installed/native capture pass open.
-
-[fontlab-grablab v1.1.14](https://github.com/fontlabcom/fontlab-grablab/releases/tag/v1.1.14) is qualified at `0de4c56f07605560309e47b774c8060a246141ce`.
-
-The F5/F6 and Save consumers, native smoke example and guarded Grab example use Fly; the wheel remains library-only.
-
-206 runtime tests and all four complete changed-module gates pass (grab.py: 85.98% statements, 82.32% branches; the other three modules: 100%). All 36 documentation tests and exact 50-file parity pass. Genuine wheel/sdist ordinary cohorts each contain 29 compatible packages and match all 7 installed payload files; eight extracted-sdist consumer cases use stand-ins. Normal main/tag hooks, CI and actual downloads are qualified.
-
-The source, artifact, ordinary external-install, release and download gates above are verified. This round reconciles their progress records after release; it changes no runtime source, installer, dependency declaration, generated documentation or immutable release asset. Menu scripts and the smoke example are sdist/source payloads. Native acceptance must execute the published sdist example against the genuine installed GrabLab 1.1.14 wheel and assert that library imports resolve to that wheel.
-
-Remaining: After explicit D43 recovery and admission, qualify matching installed App/Fly/GrabLab lifecycle, F5/F6 and Save behavior, native glyph capture and restoration; execute the published sdist example examples/native_smoke.py against the genuine installed GrabLab 1.1.14 wheel, asserting library imports resolve to that wheel and recording loaded paths.
-
-D43 native acceptance remains held and unproved. Issue 123 remains paused; existing private Pages holds and every unrelated acceptance task remain in PLAN/TODO. Prior WORK bytes are retained exactly in the private external delivery ledger, SHA256 `73c732904e341a330c34f225fbee2923923ee4481e8de7c6a21d56c68cb892fe`.
+Prior WORK bytes are retained exactly in the private external delivery ledger, SHA256 `73c732904e341a330c34f225fbee2923923ee4481e8de7c6a21d56c68cb892fe`.

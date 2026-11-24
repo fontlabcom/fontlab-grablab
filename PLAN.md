@@ -2,56 +2,25 @@
 this_file: PLAN.md
 ---
 
-## Issue 271 installer qualification
+# Remaining work
 
-Integrate the independently reviewed generated installer through existing full
-repository/hook gates; verify exact-SHA CI and archives, then qualify native
-macOS/Windows use when the serialized guard is available. Preserve owner files.
+## Installer and capture
 
+- **Issue 271.** Locate or complete independent review of the Instamix 1.0.18 installer at `f383b9b`. Test source installation in FontLab on macOS and Windows after native admission. Check the installed package, scripts and preservation of owner files. The v1.1.19 source archive contains the reviewed template bytes.
+- **Issue 255.** After D43 recovery and admission, run `examples/native_smoke.py` from the published v1.1.14 sdist against the installed v1.1.14 wheel and matching App/Fly packages. Record loaded paths. Exercise F5/F6, Save and the glyph viewport, including preference restoration on failure.
+- **Issue 122.** Run the separate App smoke against the matching installed cohort.
+- Check whole-desktop output and the remaining panel/window configurations in FontLab. Keep dialog capture on hold until an owned check proves that QColorDialog and QFileDialog restore global state.
 
-## Functional work order — 2026-11-14
+Preserve image-only returns, JSON/UI sidecars, ambiguous rasters and named URL-mode resources. Keep font/stroke substitution explicit with `restyle=True`. Use the serialized native runner, restore capture preferences and retain the owner’s font creation/export waiver.
 
-Prioritize useful glyph, SVG and UI capture with correct restoration and matching App lifecycle behavior. Reconcile Fly/App consumer routes and the pending installer synchronization decision while preserving icon modes and owned capture fixtures.
+## Documentation
 
-Use small smoke checks and focused regressions for changed behavior and package boundaries. Keep the existing detailed acceptance tasks for a later testing pass; mandatory delivery hooks and current holds remain in force.
+Reconcile the two changed Fly 0.2.1 CSS hashes and the wheel provenance when updates to the records are authorized. Run the strict build, documentation tests and clean-rebuild comparison before accepting the generated site. Private Pages configuration and publication remain owner-held.
 
-Issue 230 reconciliation is current. Issue 123 implementation remains paused; its acceptance backlog below is preserved, not resumed. Keep qualified Issue 207 candidates distinct from canonical source, ordinary installed artifacts, native acceptance and publication. Issue 210 defines the future plugin split; Issue 211 retains follow-up checks. The owner corrected the preparation catalogue reference to Issue 214.
+## Conditional follow-up
 
-## Issue 255 remaining native acceptance
+Keep the five historical helpers inactive. Before reactivating a helper, test the lifecycle, signals, clipboard, dialog or persistent state identified in its README disposition. After main integration, check branch ancestry, unique files and owner worktree attachments before any authorized cleanup.
 
-After explicit D43 recovery and admission, qualify matching installed App/Fly/GrabLab lifecycle, F5/F6 and Save behavior, native glyph capture and restoration; execute the published sdist example examples/native_smoke.py against the genuine installed GrabLab 1.1.14 wheel, asserting library imports resolve to that wheel and recording loaded paths. Source, genuine artifact, ordinary external-install and release/download qualification for v1.1.14 is recorded in CHANGELOG. Existing private Pages and Issue 123 holds remain. Menu scripts and the smoke example are sdist/source payloads, not runtime-wheel payloads. The retained wheel-native TODO requires a packaging-scope decision before execution.
+Issue 123 remains paused. Reconcile the Issue 207 candidate with later source before promotion. Issue 210 describes future architecture. Issue 211 follow-up checks remain open; retain their recorded scope.
 
-## Remaining native integration
-
-The Issue 131 screenshot and four-mode icon deliveries have dated, bounded receipts in CHANGELOG and WORK. Do not repeat them as unfinished implementation tasks.
-
-Qualify whole-desktop capture, every panel/window configuration and dialog global-state restoration. Qualify the separate Issue 122 App smoke against the matching installed cohort. Use owned fixtures through the workspace native runner, with preference/content restoration and retained failure receipts. Offline tests cannot close native items.
-
-Keep whole-desktop/all-configurations/custom-widget reconstruction separate from accepted paired Font/Glyph-window, panel, metadata and six-style compositions. Preserve ambiguous raster content, image-only returns, runtime JSON/UI sidecars and explicit `restyle=True` font/stroke substitution. URL modes must retain named resources and disclose external-image styling/embedding limits. The owner's font creation/export waiver and absence of icon-font use remain part of the historical acceptance boundary, not an instruction to create fonts now.
-
-## Remaining source reconciliation
-
-Qualify actual FontLab installation separately from the owned source-installer
-resolver checks. Retain the explicitly limited no-uv presence-only fallback.
-Keep the five historical helper dispositions in README; do not activate watchers, clipboard tools, dialogs or
-persistent visibility changes without their own owned lifecycle acceptance.
-
-Obtain independent review of this source MVP and genuine postcommit artifacts,
-then perform authorized remote/main delivery separately. Current native capture,
-owner installation and the private Pages hold remain separate.
-
-## Provider and distribution maintenance
-
-Recheck current App imports and every caller before provider migration. Qualify genuine matching wheel/sdist origins, complete payload/privacy/licence checks and relevant native capture behavior only when those bytes change. Preserve legacy recovery provenance and the original failure receipts. Do not claim a new full screenshot/native acceptance from the docs change.
-
-## Development checks
-
-Run `uv venv --python cpython-3.11-macos-aarch64-none`, then `uv pip install -e ../fontlab-fontlabapp -e ".[test,svg]"`, then `./test.sh`. The wrapper uses `--no-sync`, so prepare the environment first. Build with `uv build`.
-
-## Review, integration and cleanup
-
-Use the detailed open tasks in [TODO.md](TODO.md) as the acceptance checklist. Complete one scoped MVP, then run the exact repository checks and unchanged 80% gate for each complete changed production module. Keep source, genuine artifacts, ordinary origins and native behavior separate. Obtain independent review before a milestone commit/push and verify the actual remote head. Reconcile concurrent source and all callers before main integration. Preserve recovery/unique work and fresh owner/worktree attachments before obsolete branch/file cleanup. Update TODO/PLAN and record only scoped verified results in CHANGELOG. Do not drive the owner's FontLab, install into its user folder or publish a site from this proposal.
-
-## Private documentation delivery gates
-
-Consume the independently reviewed source-only candidate, rebuild generated output with the actual source commit epoch, and qualify normal repository main Actions and immutable X/Y lineage. Preserve native/owner-install gates. Private Pages configuration and publication remain owner-held.
+Use focused checks across changed App/Fly interfaces and preserve payload, licence and migration provenance. Run the repository gates, including the existing 80% changed-module gate, before delivery. Source, ordinary installed artifacts and FontLab execution each need their own verification.
