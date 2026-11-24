@@ -335,14 +335,14 @@
     },
     {
       "name": "fly-january",
-      "version": "0.3.0",
-      "source_url": "https://files.pythonhosted.org/packages/c9/9b/4a377e8c6ab9b709c9a785980ba51e40ad0cb1205b29a1834cc85a30aa36/fly_january-0.3.0-py3-none-any.whl",
-      "archive_sha256": "e98e905b4264fe35950105acfdb69373f8dca0f5c8789e1769833415207cf5b8",
+      "version": "0.4.0",
+      "source_url": "https://files.pythonhosted.org/packages/72/50/26a3bd9a648dd95a63e4b16c81322180d32a7e51a0780b43b051749e39ce/fly_january-0.4.0-py3-none-any.whl",
+      "archive_sha256": "f09280fcc7817debd6e6488223908da1624d80de9c2e7dfb7207d415fcef78f0",
       "notices": [
         {
           "path": "assets/LICENSE",
           "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
-          "archive_member": "fly_january-0.3.0.dist-info/licenses/LICENSE",
+          "archive_member": "fly_january-0.4.0.dist-info/licenses/LICENSE",
           "scope": "Complete exact wheel licence"
         }
       ]

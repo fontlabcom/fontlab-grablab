@@ -116,7 +116,7 @@ installing into its user folder or publishing a site.
 
 ## Private source/build-only documentation
 
-Author pages under `src_docs/md`. Configure fly-january 0.3.0 or later and FontLab chrome in `src_docs/mkdocs.yml`. Use the separate Python 3.13 environment from `src_docs/requirements.txt` and regenerate `docs/` with `sh src_docs/build.sh`. The main workflow qualifies direct source/output lineage and full ignored-output parity. Twelve private P/L operations remain owner-held; no Pages request or permission belongs here. Preserve runtime sources and native boundaries.
+Author pages under `src_docs/md`. Configure fly-january 0.4.0 or later (remote theme assets) and FontLab chrome in `src_docs/mkdocs.yml`. Use the separate Python 3.13 environment from `src_docs/requirements.txt` and regenerate `docs/` with `sh src_docs/build.sh`. The main workflow qualifies direct source/output lineage and full ignored-output parity. Twelve private P/L operations remain owner-held; no Pages request or permission belongs here. Preserve runtime sources and native boundaries.
 
 ## Integration rounds
 

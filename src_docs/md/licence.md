@@ -14,19 +14,19 @@ The migrated grab helpers retain the BSD 3-Clause copyright and disclaimer in th
 
 ## Current English browser payload
 
-The [browser-component record](assets/current-frontend-notices.json) records exact upstream notices, package archives and source maps for the theme adoption and the retained MaterialX 10.1.8 browser assets. The docs environment requires fly-january 0.3.0 or later. Product terms above remain unchanged.
+The [browser-component record](assets/current-frontend-notices.json) records exact upstream notices, package archives and source maps for the theme adoption and the retained MaterialX 10.1.8 browser assets. The docs environment requires fly-january 0.4.0 or later (remote theme assets). Product terms above remain unchanged.
 
-The [English-only omission manifest](assets/english-search-omissions.json) binds all 35 unused lunr-languages 1.20.0 helpers, including Wordcut and TinySegmenter. The build rejects theme/search-language, corpus, vendor-set/hash and local HTML-reference drift before removing them. The manifest also records the five bundled Fly files and nine MaterialX files. Fly rescales the two MaterialX stylesheets; the manifest records both their original and generated hashes. Historical complete outputs remain recovery evidence; omitted helpers are not represented as currently distributed or relicensed.
+The [English-only omission manifest](assets/english-search-omissions.json) binds all 35 unused lunr-languages 1.20.0 helpers, including Wordcut and TinySegmenter. The build rejects theme/search-language, corpus, vendor-set/hash and local HTML-reference drift before removing them. The manifest also records the nine local MaterialX files. Fly rescales the two MaterialX stylesheets; the manifest records both their original and generated hashes. Historical complete outputs remain recovery evidence; omitted helpers are not represented as currently distributed or relicensed.
 
 The main source map retains 211 preferred sources, including 128 exact NPM source matches; the worker map retains 13 sources, including Lunr 2.3.9. The exact clipboard distribution embeds its dependencies; select, good-listener and delegate retain their upstream README MIT link and Zeno Rocha attribution, without invented standalone licence text or dates. CSS maps retain source names without embedded source bodies.
 
 Material Design icons retain the Pictogrammers notice and Apache 2.0 icon terms or specifically stated underlying terms; code is MIT. Font Awesome Free retains Fonticons attribution and CC-BY 4.0 terms. Octicons retains GitHub's MIT notice; Lucide retains ISC and inherited notices. Of 45 observed ordered SVG path tuples, 43 match installed MaterialX icon path tuples exactly, including `fontawesome/solid/caret-down.svg` used by `--md-version-icon`. Its unchanged CSS header identifies Font Awesome Free 7.1.0, Copyright 2025 Fonticons, Inc., and CC-BY-4.0 icon terms; the full Font Awesome notice remains available below. The official Font Awesome 7.1.0 NPM caret SVG has different raw path bytes from the installed icon and CSS. The two unmatched Lucide focus/download tuples retain their pinned SCSS attribution. No unchanged-primary SVG, whole-geometry or optimizer-recipe equivalence is claimed.
 
-The Fly stylesheet and scripts ship with the site. FontLab serves the menu and footer script. Adobe and Google serve fonts, and jsDelivr serves PhotoSwipe 5.4.4. The retained notices below include historical external-service references.
+FontLab’s CDN serves the Fly stylesheets and scripts. FontLab serves the menu and footer script. Adobe and Google serve fonts, and jsDelivr serves PhotoSwipe 5.4.4. The retained notices below include historical external-service references.
 
 | Component / retained terms | Version | Exact full notice or upstream README licence section |
 | --- | --- | --- |
-| fly-january | 0.3.0 or later | [LICENSE](assets/LICENSE) |
+| fly-january | 0.4.0 or later (remote theme assets) | [LICENSE](assets/LICENSE) |
 | clipboard | 2.0.11 | [LICENSE.txt](assets/current-frontend/clipboard/LICENSE.txt) |
 | tiny-emitter | 2.1.0 | [LICENSE.txt](assets/current-frontend/tiny-emitter/LICENSE.txt) |
 | escape-html | 1.0.3 | [LICENSE.txt](assets/current-frontend/escape-html/LICENSE.txt) |

@@ -61,9 +61,9 @@ class SiteTests(unittest.TestCase):
         for route in PAGES:
             page = Page((SITE / route).read_text())
             with self.subTest(route=route):
-                asset_paths = [urlsplit(link).path for link in page.links]
+                self.assertFalse(any('assets/fly/' in link for link in page.links))
                 for asset in ('fly.css', 'fly-bridge.js', 'fly.js'):
-                    self.assertTrue(any(path.endswith('assets/fly/' + asset) for path in asset_paths), asset)
+                    self.assertIn('https://fontlab.dev/fontlab-www-docstheme/fly/latest/' + asset, page.links)
                 menus = [attrs for tag, attrs in page.tags if tag == 'fontlab-menu']
                 self.assertEqual(len(menus), 1)
                 self.assertEqual(menus[0].get('site-label'), 'GrabLab')

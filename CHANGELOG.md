@@ -20,6 +20,7 @@ Consumer integration, released archives and native execution remain separate che
 
 ## Unreleased
 
+- The site uses fly-january 0.4.0 or later (remote theme assets).
 - The documentation requires fly-january 0.3.0 or later and builds with 0.3.0.
 
 - The PyPI project `fontlab-grablab` requires an owner-configured GitHub trusted publisher for `fontlabcom/fontlab-grablab`, workflow `release.yml`, environment `pypi`. PyPI records this publisher for both [v1.1.19 distributions](https://pypi.org/project/fontlab-grablab/1.1.19/#files).
