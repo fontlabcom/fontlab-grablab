@@ -14,7 +14,7 @@ The migrated grab helpers retain the BSD 3-Clause copyright and disclaimer in th
 
 ## Current English browser payload
 
-The [browser-component record](assets/current-frontend-notices.json) binds fly-january 0.1.1 and the retained MaterialX 10.1.8 browser assets to exact upstream notices, package archives and source maps. Product terms above remain unchanged.
+The [browser-component record](assets/current-frontend-notices.json) records exact upstream notices, package archives and source maps for the theme adoption and the retained MaterialX 10.1.8 browser assets. The docs environment pins fly-january 0.2.1. Product terms above remain unchanged.
 
 The [English-only omission manifest](assets/english-search-omissions.json) binds all 35 unused lunr-languages 1.20.0 helpers, including Wordcut and TinySegmenter. The build rejects theme/search-language, corpus, vendor-set/hash and local HTML-reference drift before removing them. The manifest also records the five bundled Fly files and nine MaterialX files. Fly rescales the two MaterialX stylesheets; the manifest records both their original and generated hashes. Historical complete outputs remain recovery evidence; omitted helpers are not represented as currently distributed or relicensed.
 
@@ -26,7 +26,7 @@ The Fly stylesheet and scripts ship with the site. FontLab serves the menu and f
 
 | Component / retained terms | Version | Exact full notice or upstream README licence section |
 | --- | --- | --- |
-| fly-january | 0.1.1 | [LICENSE](assets/LICENSE) |
+| fly-january | 0.2.1 | [LICENSE](assets/LICENSE) |
 | clipboard | 2.0.11 | [LICENSE.txt](assets/current-frontend/clipboard/LICENSE.txt) |
 | tiny-emitter | 2.1.0 | [LICENSE.txt](assets/current-frontend/tiny-emitter/LICENSE.txt) |
 | escape-html | 1.0.3 | [LICENSE.txt](assets/current-frontend/escape-html/LICENSE.txt) |

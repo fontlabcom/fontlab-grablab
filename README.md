@@ -20,7 +20,7 @@ Keep runtime, ordinary installed artifacts, native workflows and published docum
 
 ## Documentation source and build
 
-The [GrabLab guide](src_docs/md/index.md) uses fly-january 0.1.1 with the FontLab menu and footer. Build and test it from the repository root with Python 3.13:
+The [GrabLab guide](src_docs/md/index.md) uses fly-january 0.2.1 with the FontLab menu and footer. Build and test it from the repository root with Python 3.13:
 
 ```sh
 uv venv --python 3.13 .local/docs-env
